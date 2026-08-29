@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LLM Context Optimization Middleware
 
 Middleware that sits between an app and an LLM. It cuts irrelevant/redundant
@@ -120,3 +121,6 @@ failure; 70% reduction that preserves quality is the win condition.
   (critical-info protection + compression + budget engine)
 - `tests/adversarial_cases.md` — the adversarial test set (negations,
   numbers, constraints, paraphrases) used to validate the hardest module
+=======
+# DevJams-26-Team_Harmony
+>>>>>>> origin
