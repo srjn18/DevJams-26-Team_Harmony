@@ -85,6 +85,11 @@ Unrelated backup instructions: verify the backup status daily at 3 AM.
         self.assertTrue(len(timeout_chunk) > 0)
         self.assertTrue(timeout_chunk[0].pinned)
         
+        # - Verify decision/migration chunk survived and was pinned
+        migration_chunk = [c for c in optimized_chunks if "DynamoDB" in c.text or "migrate" in c.text.lower()]
+        self.assertTrue(len(migration_chunk) > 0)
+        self.assertTrue(migration_chunk[0].pinned, "Decision/migration chunk should be pinned")
+
         # - Verify low relevance backup chunk was dropped by the budget
         backup_chunk = [c for c in optimized_chunks if "backup" in c.text.lower()]
         self.assertEqual(len(backup_chunk), 0, "Unrelated backup chunks should have been dropped by budget")

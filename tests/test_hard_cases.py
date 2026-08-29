@@ -66,6 +66,7 @@ class TestHardCases(unittest.TestCase):
         # 1. Pinned chunk is NEVER sent to llm_call_fn
         c1 = Chunk(id="c1", text="Do NOT use MongoDB for this project.", token_count=10, source="document", tag="CONVERSATION", position=0, relevance_score=0.5)
         apply_pinning([c1])
+        self.assertTrue(c1.pinned, "apply_pinning should set pinned to True for negation chunks")
         called = []
         def mock_llm_1(prompt):
             called.append(True)
@@ -77,6 +78,7 @@ class TestHardCases(unittest.TestCase):
         # 2. Pinned chunk with number is NEVER sent
         c2 = Chunk(id="c2", text="Timeout is set to 30 seconds.", token_count=10, source="document", tag="CONVERSATION", position=0, relevance_score=0.5)
         apply_pinning([c2])
+        self.assertTrue(c2.pinned, "apply_pinning should set pinned to True for number chunks")
         res2 = compress_chunk(c2, "query", llm_call_fn=mock_llm_1)
         self.assertEqual(len(called), 0, "LLM was called for a pinned number chunk")
 
