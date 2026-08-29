@@ -8,40 +8,12 @@ try:
 except ImportError:
     from models import Chunk
 
+# Import canonical critical-flag detection from the shared module.
+# This is the SINGLE SOURCE OF TRUTH for flag regex patterns.
+# See critical_flags.py module docstring for design principles.
+from .critical_flags import detect_critical_flags
+
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Step A: Critical-info detection
-# ---------------------------------------------------------------------------
-
-CRITICAL_PATTERNS: list[tuple[str, re.Pattern]] = [
-    ("negation", re.compile(
-        r"\b(do not|don't|never|must not|mustn't|can't|cannot|won't|shouldn't|"
-        r"should not)\b", re.IGNORECASE)),
-    ("number", re.compile(
-        r"(\b\d+(\.\d+)?\s*(seconds?|s|ms|minutes?|hours?|days?|%|percent|"
-        r"tokens?|requests?|MB|GB|KB)(?!\w))|(\b(is|=|set(?:[a-zA-Z\s]+)?to|equals)\s+\d+\b)",
-        re.IGNORECASE)),
-    ("constraint", re.compile(
-        r"\b(must|required|shall|has to|needs to|only|always|mandatory)\b",
-        re.IGNORECASE)),
-    ("error", re.compile(
-        r"(\b(HTTP\s*)?[1-5]\d{2}\b.{0,20}(error|status|returns?))|"
-        r"(\b(error|status|returns?)\b.{0,20}\b(HTTP\s*)?[1-5]\d{2}\b)|"
-        r"(\bexception\b|\btraceback\b|\bfailed with\b|\bstack trace\b)", re.IGNORECASE)),
-    ("decision", re.compile(
-        r"\b(we\s+(chose|decided|will use|are using)|we're\s+using|switched\s+to|migrat(ed|ing)\s+(to|off))\b",
-        re.IGNORECASE)),
-]
-
-
-def detect_critical_flags(text: str) -> list[str]:
-    """Return list of flag names that fire on this text."""
-    flags = []
-    for name, pattern in CRITICAL_PATTERNS:
-        if pattern.search(text):
-            flags.append(name)
-    return flags
 
 
 def approx_token_count(text: str) -> int:
@@ -109,6 +81,15 @@ def compress_chunk(chunk: Chunk, query: str, llm_call_fn=None) -> Chunk:
     """
     Compresses non-pinned chunk text using llm_call_fn. Reverts to original if
     information is lost or empty output is received.
+
+    Detector vs. Validator roles:
+    - detect_critical_flags() is the DETECTOR: it identifies which flags are
+      present in a piece of text.
+    - This function uses the detector in a VALIDATOR role: it compares the
+      flags of the original text against the compressed text to ensure no
+      critical information was lost. Both roles intentionally share the same
+      canonical detect_critical_flags() function from critical_flags.py to
+      guarantee they can never drift apart.
     """
     if chunk.pinned:
         return chunk
@@ -198,6 +179,11 @@ def optimize_chunks(query: str, chunks: list[Chunk], token_budget: int,
     # 2. Pinning
     surviving_chunks = apply_pinning(surviving_chunks)
 
+    # Snapshot critical-flag count BEFORE compression for trace reporting.
+    # "We preserved 6 of 6 critical facts through 78% compression" is the
+    # kind of concrete metric that demonstrates pipeline integrity.
+    critical_before = sum(len(c.critical_flags) for c in surviving_chunks)
+
     # 3. Scoring
     for c in surviving_chunks:
         c.importance_score = compute_importance_score(c)
@@ -219,6 +205,9 @@ def optimize_chunks(query: str, chunks: list[Chunk], token_budget: int,
 
     after_compression = sum(c.token_count for c in surviving_chunks)
 
+    # Snapshot critical-flag count AFTER compression for trace reporting.
+    critical_after = sum(len(c.critical_flags) for c in surviving_chunks)
+
     # 5. Token Budget
     kept, budget_trace = enforce_budget(surviving_chunks, token_budget)
 
@@ -233,6 +222,8 @@ def optimize_chunks(query: str, chunks: list[Chunk], token_budget: int,
         "chunks_merged_duplicate": chunks_merged_duplicate,
         "chunks_compressed": compressed_count,
         "revert_policy": "loss-only",
+        "critical_before": critical_before,
+        "critical_after": critical_after,
         **budget_trace,
         "stage_tokens": {
             "after_relevance": after_relevance,

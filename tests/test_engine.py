@@ -145,7 +145,7 @@ We are migrating off Postgres to DynamoDB next quarter for better scale and perf
         self.assertIn("Deployment", chunks_md[1].text)
 
     def test_provisional_critical_flags(self):
-        """Test provisional detection of numbers, errors, constraints, and negations."""
+        """Test canonical critical-flag detection at chunking time (numbers, errors, constraints, negations)."""
         context = """[DOC]
 The timeout limit is strictly 500ms and must not exceed $50 per transaction.
 [TOOL_OUTPUT]

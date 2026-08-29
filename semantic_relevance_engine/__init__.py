@@ -7,10 +7,12 @@ from .engine import rank_chunks
 from .chunker import chunk_context
 from .embedder import Embedder
 from .optimizer import optimize_chunks
+from .critical_flags import detect_critical_flags
 
 __all__ = [
     "rank_chunks",
     "optimize_chunks",
+    "detect_critical_flags",
     "Chunk",
     "SourceType",
     "TagType",

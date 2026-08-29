@@ -2,8 +2,9 @@ import unittest
 import sys
 import os
 
+from semantic_relevance_engine.critical_flags import detect_critical_flags
 from semantic_relevance_engine.optimizer import (
-    Chunk, detect_critical_flags, apply_pinning, compute_final_score,
+    Chunk, apply_pinning, compute_final_score,
     compress_chunk, enforce_budget, optimize_chunks, approx_token_count
 )
 
@@ -30,6 +31,9 @@ class TestHardCases(unittest.TestCase):
             self.assertIn(expected_flag, flags, f"Expected {expected_flag} in '{text}', got {flags}")
 
     def test_cat2_false_positives(self):
+        """Canonical-set false-positive discipline: these inputs must produce
+        ZERO flags. If any new regex addition causes a hit here, it doesn't
+        belong in the canonical set."""
         cases = [
             "See step 4 for details on deployment.",
             "Refer to chapter 3 of the handbook.",
@@ -39,7 +43,22 @@ class TestHardCases(unittest.TestCase):
             "Check out issue #404 on GitHub for context.",
             "Our office is at 500 Main Street.",
             "Port 8080 is used for local dev.",
-            "He said the food was okay, nothing special."
+            "He said the food was okay, nothing special.",
+            # Additional canonical-set false-positive guards:
+            # bare numbers that aren't measurements or assignments
+            "The README has 7 sections.",
+            "Version 2 of the API was released.",
+            # casual negation-adjacent phrasing
+            "I noticed the config file was updated.",
+            "The team discussed options briefly.",
+            # Negation-widening false-positive guards: these contain negation
+            # words (neither, doesn't, without, aren't, nor) in benign,
+            # non-critical contexts. They must NOT trigger negation flags.
+            "Neither option matters much for this demo.",
+            "The bug report doesn't mention any specifics.",
+            "This works fine without any special configuration.",
+            "The two approaches aren't that different in practice.",
+            "Nor did anyone raise concerns about it.",
         ]
         for text in cases:
             flags = detect_critical_flags(text)
@@ -92,7 +111,7 @@ class TestHardCases(unittest.TestCase):
         self.assertIn("flag_added", getattr(res3, "trace_events", []))
 
         # 4. Correctly compresses non-critical chunk
-        c4 = Chunk(id="c4", text="This is a very long and verbose sentence that doesn't say much.", token_count=20, source="document", tag="CONVERSATION", position=0, relevance_score=0.5)
+        c4 = Chunk(id="c4", text="This is a very long and verbose sentence with lots of extra words.", token_count=20, source="document", tag="CONVERSATION", position=0, relevance_score=0.5)
         apply_pinning([c4])
         def mock_llm_4(prompt):
             return "Short sentence."
@@ -200,6 +219,13 @@ class TestHardCases(unittest.TestCase):
         self.assertEqual(trace["chunks_compressed"], 1)
         self.assertEqual(trace["chunks_removed_by_budget"], 1)
         self.assertEqual(trace["chunks_pinned_critical"], 2)
+        # Verify critical-info-count trace metrics (#7)
+        self.assertIn("critical_before", trace)
+        self.assertIn("critical_after", trace)
+        self.assertGreater(trace["critical_before"], 0,
+            "critical_before should be > 0 — chunks with flags exist")
+        self.assertEqual(trace["critical_before"], trace["critical_after"],
+            "critical flags should be preserved through compression")
 
 if __name__ == "__main__":
     unittest.main()
