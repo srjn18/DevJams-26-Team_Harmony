@@ -490,3 +490,25 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+function switchViewTab(tab) {
+  const dashboardWrapper = document.getElementById("dashboardViewWrapper");
+  const figmaContainer = document.getElementById("figmaViewContainer");
+  const btnDashboard = document.getElementById("tabBtnDashboard");
+  const btnFigma = document.getElementById("tabBtnFigma");
+
+  if (tab === "figma") {
+    dashboardWrapper.classList.add("hidden");
+    figmaContainer.classList.remove("hidden");
+
+    btnFigma.className = "px-3 py-1.5 rounded-lg font-medium transition bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center space-x-1.5";
+    btnDashboard.className = "px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5";
+  } else {
+    dashboardWrapper.classList.remove("hidden");
+    figmaContainer.classList.add("hidden");
+
+    btnDashboard.className = "px-3 py-1.5 rounded-lg font-medium transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1.5";
+    btnFigma.className = "px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5";
+  }
+}
+
