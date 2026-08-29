@@ -40,12 +40,7 @@ FLAG_PATTERNS = {
 }
 
 
-def _estimate_token_count(text: str) -> int:
-    """Rough estimation of token count (~1.3 tokens per word)."""
-    words = text.strip().split()
-    if not words:
-        return 0
-    return max(1, int(len(words) * 1.3))
+from .optimizer import approx_token_count
 
 
 def _detect_provisional_flags(text: str) -> List[str]:
@@ -182,7 +177,7 @@ def chunk_context(context: str) -> List[Chunk]:
     for pos, (marker, text) in enumerate(raw_sections):
         source, tag, pinned = _map_marker_to_source_and_tag(marker)
         chunk_id = f"c_{pos + 1:04d}"
-        token_cnt = _estimate_token_count(text)
+        token_cnt = approx_token_count(text)
         critical_flags = _detect_provisional_flags(text)
 
         chunks.append(
