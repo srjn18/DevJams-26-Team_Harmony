@@ -57,25 +57,25 @@ The optimization layer attempts to remove unnecessary tokens while retaining the
 ### Pipeline overview
 
 ```
-Query + Context
-      │
-      ▼
+    Query + Context
+          │
+          ▼
 ┌──────────────────────┐
-│  Context Analyzer    │   Estimates cost vs savings
+│   Context Analyzer   │   Estimates cost vs savings
 └──────────┬───────────┘
-      decides SKIP / LIGHT / FULL
-      │
-      ▼
+decides SKIP / LIGHT / FULL
+           │
+           ▼
 ┌──────────────────────┐
 │  Optimization Layer  │   Ranks + compresses context
 └──────────┬───────────┘
-      │
-      ▼
+           │
+           ▼
 ┌──────────────────────┐
 │         LLM          │   Generates the final answer
 └──────────┬───────────┘
-      │
-      ▼
+           │
+           ▼
 ┌──────────────────────┐
 │ Evaluation & Metrics │   Compares quality, cost, latency
 └──────────────────────┘
@@ -90,7 +90,7 @@ Before doing any expensive work, the Context Analyzer decides how much optimizat
                   Estimates cost vs savings
                             │
               ┌─────────────┼─────────────┐
-              ▼              ▼              ▼
+              ▼             ▼             ▼
            SKIP            LIGHT           FULL
       Send as-is      Rank chunks only   Rank + compress
       no processing    no compression    + fit token budget
