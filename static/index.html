@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nexus — LLM Context Optimization Middleware</title>
+  <title>ContextFlow — Context Optimization Engine</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -13,16 +13,22 @@
         extend: {
           colors: {
             brand: {
-              50: '#f0fdf4',
+              50: '#ecfdf5',
+              400: '#34d399',
               500: '#10b981',
               600: '#059669',
               700: '#047857',
             },
+            cyan: {
+              400: '#22d3ee',
+              500: '#06b6d4',
+            },
             dark: {
-              900: '#0b0f17',
-              800: '#111827',
-              700: '#1f2937',
-              600: '#374151',
+              950: '#07090e',
+              900: '#0d131f',
+              850: '#111927',
+              800: '#1a2333',
+              700: '#263349',
             }
           }
         }
@@ -35,43 +41,64 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
-<body class="bg-[#0a0d14] text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+<body class="bg-dark-950 text-slate-100 min-h-screen antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+
+  <!-- Toast Notification Container -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900/95 border border-emerald-500/40 text-emerald-300 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2.5 text-xs font-medium backdrop-blur-md">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMessage">Action completed successfully.</span>
+  </div>
 
   <!-- Top Header Navigation -->
-  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+  <header class="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <i data-lucide="layers" class="w-5 h-5 text-slate-950 font-bold"></i>
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchViewTab('engine')">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-400 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+          <i data-lucide="zap" class="w-5 h-5 text-slate-950 font-extrabold"></i>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <span class="font-bold text-lg tracking-tight text-white">Nexus</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">Context Middleware</span>
+            <span class="font-extrabold text-lg tracking-tight text-white">Context<span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Flow</span></span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold uppercase tracking-wider">Engine v1.0</span>
           </div>
-          <p class="text-xs text-slate-400">Deterministic Chunking • Semantic Relevance • Compression • Coherence</p>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Cost-Aware Context Optimization Middleware for LLMs</p>
         </div>
       </div>
 
-      <div class="flex items-center space-x-4">
-        <!-- Navigation Tabs -->
-        <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
-          <button type="button" id="tabBtnDashboard" onclick="switchViewTab('dashboard')" class="px-3 py-1.5 rounded-lg font-medium transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1.5">
-            <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
-            <span>Dashboard</span>
-          </button>
-          <button type="button" id="tabBtnFigma" onclick="switchViewTab('figma')" class="px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
-            <i data-lucide="figma" class="w-3.5 h-3.5 text-pink-400"></i>
-            <span>Figma Canvas</span>
-          </button>
-        </div>
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs shadow-inner">
+        <button type="button" id="tabBtnEngine" onclick="switchViewTab('engine')" class="px-3 py-1.5 rounded-lg font-medium transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1.5">
+          <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+          <span>Engine</span>
+        </button>
+        <button type="button" id="tabBtnAdversarial" onclick="switchViewTab('adversarial')" class="px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span class="hidden sm:inline">Adversarial Tests</span>
+          <span class="sm:hidden">Tests</span>
+        </button>
+        <button type="button" id="tabBtnArchitecture" onclick="switchViewTab('architecture')" class="px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+          <i data-lucide="git-merge" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span class="hidden md:inline">Architecture</span>
+        </button>
+        <button type="button" id="tabBtnFigma" onclick="switchViewTab('figma')" class="px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+          <i data-lucide="figma" class="w-3.5 h-3.5 text-pink-400"></i>
+          <span>Figma</span>
+        </button>
+        <button type="button" id="tabBtnDocs" onclick="switchViewTab('docs')" class="px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+          <i data-lucide="file-code" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span class="hidden md:inline">API Reference</span>
+          <span class="md:hidden">API</span>
+        </button>
+      </nav>
 
-        <!-- Pipeline Status Pill -->
-        <div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
+      <!-- Right Badges -->
+      <div class="hidden lg:flex items-center space-x-3">
+        <div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs">
           <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span class="text-slate-300">Endpoints: <strong class="text-emerald-400">Ready</strong></span>
+          <span class="text-slate-300">Engine: <strong class="text-emerald-400">Ready</strong></span>
         </div>
-        <!-- Route Badge -->
         <div id="routeHeaderBadge" class="hidden px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border">
           ROUTE: <span id="routeHeaderValue">FULL</span>
         </div>
@@ -82,22 +109,576 @@
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-    <!-- Figma Live Design View (Toggleable Tab) -->
-    <section id="figmaViewContainer" class="hidden space-y-4 animate-fade-in">
-      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <!-- Fallback Alert Banner (Shown when fallback is triggered) -->
+    <div id="fallbackBanner" class="hidden p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start space-x-3 animate-fade-in shadow-xl">
+      <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h4 class="font-semibold text-sm text-amber-200">Graceful Degradation Fallback Activated</h4>
+          <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase">Zero Crash Guard</span>
+        </div>
+        <p class="text-xs text-amber-300/90 mt-1" id="fallbackReasonText">Tier-2 compression experienced a failure. Pipeline gracefully fell back to Tier-1 relevance + deduplication without crashing.</p>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         TAB 1: OPTIMIZATION ENGINE (MAIN PLAYGROUND)
+         ========================================================================= -->
+    <div id="viewEngine" class="space-y-8 animate-fade-in">
+      
+      <!-- Top Section: Playground Inputs & Metrics -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Input Panel (7 Cols) -->
+        <div class="lg:col-span-7 glass-panel rounded-2xl p-6 shadow-2xl space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="sliders" class="w-4 h-4 text-emerald-400"></i>
+              <h2 class="font-bold text-slate-200 text-sm tracking-wide uppercase">ContextFlow Studio</h2>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-mono text-slate-400">
+              <span id="liveTokenCounter" class="bg-slate-900/80 px-2.5 py-1 rounded-md border border-slate-800">~0 tokens</span>
+              <span id="contextCharCount" class="text-slate-500 hidden sm:inline">0 chars</span>
+            </div>
+          </div>
+
+          <!-- Presets Row -->
+          <div>
+            <label class="text-xs font-semibold text-slate-400 block mb-2">Preset Benchmarks</label>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="loadPreset('support')" class="preset-btn px-3 py-1.5 rounded-xl text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition flex items-center space-x-1.5">
+                <span>🎧 Customer Support</span>
+              </button>
+              <button type="button" onclick="loadPreset('spec')" class="preset-btn px-3 py-1.5 rounded-xl text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition flex items-center space-x-1.5">
+                <span>🔒 Security & SLA Spec</span>
+              </button>
+              <button type="button" onclick="loadPreset('adversarial')" class="preset-btn px-3 py-1.5 rounded-xl text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition flex items-center space-x-1.5">
+                <span>🛡️ Adversarial Negation</span>
+              </button>
+              <button type="button" onclick="loadPreset('logs')" class="preset-btn px-3 py-1.5 rounded-xl text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition flex items-center space-x-1.5">
+                <span>📜 Duplicate Logs</span>
+              </button>
+              <button type="button" onclick="loadPreset('skip')" class="preset-btn px-3 py-1.5 rounded-xl text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-800 text-slate-300 transition flex items-center space-x-1.5">
+                <span>⚡ Tiny (Skip Route)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Query Input -->
+          <div>
+            <label class="text-xs font-semibold text-slate-300 block mb-1.5">User Query</label>
+            <div class="relative">
+              <input type="text" id="queryInput" placeholder="What is the refund window and eligibility criteria for Enterprise Tier subscriptions?" 
+                     class="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+              <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3"></i>
+            </div>
+          </div>
+
+          <!-- Context Input -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-xs font-semibold text-slate-300">Raw Context (RAG documents, System Instructions, Conversation history)</label>
+              <button type="button" onclick="clearContextInput()" class="text-[11px] text-slate-500 hover:text-slate-300 transition">Clear</button>
+            </div>
+            <textarea id="contextInput" rows="8" placeholder="Paste context or choose a preset above..."
+                      class="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl p-4 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-y leading-relaxed"></textarea>
+          </div>
+
+          <!-- Controls: Budget & Simulation -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800/80">
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <label class="text-xs font-semibold text-slate-300">Token Budget Target</label>
+                <span class="text-xs font-mono text-emerald-400 font-bold" id="budgetDisplay">250 tokens</span>
+              </div>
+              <div class="flex items-center space-x-3">
+                <input type="range" id="budgetRange" min="50" max="2000" step="25" value="250" 
+                       class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                <input type="number" id="budgetNumber" min="10" max="10000" value="250"
+                       class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-center text-slate-100 focus:outline-none focus:border-emerald-500">
+              </div>
+            </div>
+
+            <!-- Fault Injection Switch -->
+            <div class="flex flex-col justify-center bg-slate-950/40 p-3 rounded-xl border border-slate-800/60">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Fault Injection Test</span>
+              <label class="flex items-center space-x-2.5 cursor-pointer select-none">
+                <input type="checkbox" id="simulateFailureToggle" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-amber-500 accent-amber-500">
+                <span class="text-xs text-slate-300">Force Tier-2 Compression Failure</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Action Buttons Hub -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <!-- Dry Run / Analyze -->
+            <button type="button" id="btnAnalyze" onclick="executeAnalyze()"
+                    class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 text-xs font-semibold hover:border-slate-600 transition flex items-center justify-center space-x-2 shadow-sm">
+              <i data-lucide="compass" class="w-4 h-4 text-blue-400"></i>
+              <span>POST /analyze</span>
+            </button>
+
+            <!-- Optimize Pipeline -->
+            <button type="button" id="btnOptimize" onclick="executeOptimize()"
+                    class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-600/25 transition flex items-center justify-center space-x-2">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>POST /optimize</span>
+            </button>
+
+            <!-- Optimize and Answer -->
+            <button type="button" id="btnOptimizeAndAnswer" onclick="executeOptimizeAndAnswer()"
+                    class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-400 to-emerald-400 hover:from-teal-300 hover:to-emerald-300 text-slate-950 font-bold text-xs shadow-lg shadow-teal-500/25 transition flex items-center justify-center space-x-2">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              <span>POST /optimize-and-answer</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right Metrics Overview (5 Cols) -->
+        <div class="lg:col-span-5 space-y-4">
+
+          <!-- Token Efficiency Card -->
+          <div class="glass-panel glass-panel-glow rounded-2xl p-5 shadow-2xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Token Efficiency</span>
+              </span>
+              <span id="routeBadge" class="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-900 text-slate-400 border border-slate-700">ROUTE: READY</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5 text-center my-3">
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                <span class="text-[10px] uppercase font-semibold text-slate-400 block mb-0.5">Original</span>
+                <span class="text-xl font-extrabold font-mono text-slate-200" id="metricOriginalTokens">0</span>
+                <span class="text-[10px] text-slate-500">tokens</span>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                <span class="text-[10px] uppercase font-semibold text-slate-400 block mb-0.5">Optimized</span>
+                <span class="text-xl font-extrabold font-mono text-emerald-400" id="metricOptimizedTokens">0</span>
+                <span class="text-[10px] text-slate-500">tokens</span>
+              </div>
+              <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                <span class="text-[10px] uppercase font-semibold text-slate-400 block mb-0.5">Reduction</span>
+                <span class="text-xl font-extrabold font-mono text-cyan-400" id="metricReductionPct">0%</span>
+                <span class="text-[10px] text-slate-500">saved</span>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="space-y-1">
+              <div class="flex justify-between text-[11px] text-slate-400">
+                <span>Compression Rate</span>
+                <span id="reductionPctText" class="font-mono text-emerald-400 font-semibold">0%</span>
+              </div>
+              <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                <div id="reductionProgressBar" class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Comparison Card -->
+          <div class="glass-panel rounded-2xl p-5 shadow-2xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center space-x-1.5">
+                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Cost Impact</span>
+              </span>
+              <span id="savingsPctBadge" class="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">0% Saved</span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/50">
+                <span class="text-slate-400">Baseline Raw Prompt Cost:</span>
+                <span class="font-mono text-slate-200 font-semibold" id="costBaseline">$0.00000</span>
+              </div>
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/50">
+                <span class="text-slate-400">Optimizer Overhead:</span>
+                <span class="font-mono text-slate-400" id="costOptimizer">$0.00000</span>
+              </div>
+              <div class="flex justify-between items-center py-1 border-b border-slate-800/50">
+                <span class="text-slate-400">Optimized LLM Cost:</span>
+                <span class="font-mono text-emerald-400 font-semibold" id="costOptimizedLLM">$0.00000</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 bg-emerald-500/10 px-2.5 rounded-lg border border-emerald-500/20">
+                <span class="font-semibold text-emerald-300">Total Net Cost:</span>
+                <span class="font-mono text-emerald-300 font-bold" id="costTotalOptimized">$0.00000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Latency & Quality Metrics -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="glass-panel rounded-2xl p-4 shadow-xl">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Pipeline Latency</span>
+              <div class="flex items-baseline space-x-1">
+                <span class="text-2xl font-extrabold font-mono text-slate-100" id="metricTotalLatency">0.0</span>
+                <span class="text-xs text-slate-400 font-mono">ms</span>
+              </div>
+              <span class="text-[11px] text-slate-500 block mt-1" id="llmLatencySub">LLM: -- ms</span>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 shadow-xl">
+              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Quality Faithfulness</span>
+              <div class="flex items-baseline space-x-1">
+                <span class="text-2xl font-extrabold font-mono text-teal-300" id="metricQualityScore">--</span>
+              </div>
+              <span class="text-[11px] text-slate-500 block mt-1" id="qualitySub">Evaluated by Person 3</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Middle Section: Waterfall & Latency Breakdown -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Token Waterfall Chart (7 Cols) -->
+        <div class="lg:col-span-7 glass-panel rounded-2xl p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
+              <h3 class="font-bold text-slate-200 text-sm">Stage-by-Stage Token Waterfall</h3>
+            </div>
+            <span class="text-xs text-slate-400 font-mono">Original → Relevance → Dedup → Compression → Budget</span>
+          </div>
+          <div class="h-60 relative">
+            <canvas id="waterfallChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Per-Stage Latency Breakdown (5 Cols) -->
+        <div class="lg:col-span-5 glass-panel rounded-2xl p-6 shadow-2xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="clock" class="w-4 h-4 text-cyan-400"></i>
+              <h3 class="font-bold text-slate-200 text-sm">Micro-Latency Breakdown</h3>
+            </div>
+            <span class="text-xs font-mono text-slate-300 font-bold" id="latencySumDisplay">0.0 ms</span>
+          </div>
+
+          <div class="space-y-3 pt-1 text-xs">
+            <!-- Chunking -->
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Stage 1: Tier 0 Chunking & Tagging</span>
+                <span class="font-mono text-slate-200" id="latChunking">0.0 ms</span>
+              </div>
+              <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                <div id="barLatChunking" class="bg-blue-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Relevance -->
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Stage 3: Tier 1 Relevance Scoring</span>
+                <span class="font-mono text-slate-200" id="latRelevance">0.0 ms</span>
+              </div>
+              <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                <div id="barLatRelevance" class="bg-emerald-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Dedup -->
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Stage 3: Tier 1 Deduplication</span>
+                <span class="font-mono text-slate-200" id="latDedup">0.0 ms</span>
+              </div>
+              <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                <div id="barLatDedup" class="bg-cyan-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Compression -->
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Stage 4: Tier 2 Compression & Budget</span>
+                <span class="font-mono text-slate-200" id="latCompression">0.0 ms</span>
+              </div>
+              <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                <div id="barLatCompression" class="bg-purple-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Assembly -->
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Stage 5: Coherence Assembly</span>
+                <span class="font-mono text-slate-200" id="latAssembly">0.0 ms</span>
+              </div>
+              <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+                <div id="barLatAssembly" class="bg-amber-400 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Section 1: Coherence Context & LLM Output -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Optimized Context Box (7 Cols) -->
+        <div class="lg:col-span-7 glass-panel rounded-2xl p-6 shadow-2xl space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+              <h3 class="font-bold text-slate-200 text-sm">Optimized Context (Coherence Preserved)</h3>
+            </div>
+            <button type="button" onclick="copyOptimizedContext()" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700/80 px-2.5 py-1 rounded-lg text-slate-300 hover:text-emerald-400 transition flex items-center space-x-1">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span>Copy</span>
+            </button>
+          </div>
+          <div class="text-[11px] text-slate-400 flex items-center space-x-4">
+            <span class="flex items-center space-x-1.5"><span class="h-2 w-2 rounded-full bg-blue-400 inline-block"></span><span>System Top</span></span>
+            <span class="flex items-center space-x-1.5"><span class="h-2 w-2 rounded-full bg-cyan-400 inline-block"></span><span>Body Sequence</span></span>
+            <span class="flex items-center space-x-1.5"><span class="h-2 w-2 rounded-full bg-amber-400 inline-block"></span><span>Constraints Pre-Query</span></span>
+          </div>
+          <pre id="optimizedContextView" class="w-full bg-slate-950/90 border border-slate-800/90 rounded-xl p-4 text-xs font-mono text-slate-300 max-h-72 overflow-y-auto whitespace-pre-wrap leading-relaxed shadow-inner">No optimization run yet. Select a preset or input your context above.</pre>
+        </div>
+
+        <!-- LLM Answer Box (5 Cols) -->
+        <div class="lg:col-span-5 glass-panel rounded-2xl p-6 shadow-2xl space-y-3 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="bot" class="w-4 h-4 text-teal-400"></i>
+                <h3 class="font-bold text-slate-200 text-sm">Downstream LLM Response</h3>
+              </div>
+              <span class="text-xs font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">GPT-4o</span>
+            </div>
+            <div id="llmAnswerContainer" class="bg-slate-950/90 border border-slate-800/90 rounded-xl p-4 min-h-[14rem] max-h-72 overflow-y-auto text-xs text-slate-200 leading-relaxed shadow-inner mt-3">
+              <div id="llmAnswerText" class="text-slate-400 italic">
+                Execute "POST /optimize-and-answer" to generate live LLM inference with this prompt.
+              </div>
+            </div>
+          </div>
+          
+          <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Safety Verification: <strong class="text-teal-300" id="ansQualityBadge">100% Pinned Verified</strong></span>
+            <span id="ansLatencyBadge" class="font-mono text-slate-400">Latency: -- ms</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom Section 2: Chunk-Level Audit Inspector -->
+      <section class="glass-panel rounded-2xl p-6 shadow-2xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="list-tree" class="w-4 h-4 text-emerald-400"></i>
+            <h3 class="font-bold text-slate-200 text-sm">Chunk-Level Audit Inspector & Routing Decisions</h3>
+          </div>
+          <div class="flex items-center space-x-3 text-xs font-mono" id="chunkSummaryCounters">
+            <span>Total: <strong class="text-slate-200" id="cntTotal">0</strong></span>
+            <span>Removed: <strong class="text-rose-400" id="cntRemoved">0</strong></span>
+            <span>Merged: <strong class="text-amber-400" id="cntMerged">0</strong></span>
+            <span>Compressed: <strong class="text-purple-400" id="cntCompressed">0</strong></span>
+            <span>Pinned: <strong class="text-emerald-400" id="cntPinned">0</strong></span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-950/60">
+                <th class="py-2.5 px-3">ID</th>
+                <th class="py-2.5 px-3">Pos</th>
+                <th class="py-2.5 px-3">Tag / Type</th>
+                <th class="py-2.5 px-3">Tokens</th>
+                <th class="py-2.5 px-3">Relevance</th>
+                <th class="py-2.5 px-3">Action Taken</th>
+                <th class="py-2.5 px-4">Content Preview</th>
+              </tr>
+            </thead>
+            <tbody id="chunksTableBody" class="divide-y divide-slate-800/60 font-mono text-[11px]">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-500 font-sans text-xs">Run an optimization in the studio above to inspect chunk-level decisions.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- End viewEngine -->
+
+
+    <!-- =========================================================================
+         TAB 2: ADVERSARIAL TEST SUITE (BENCHMARKS)
+         ========================================================================= -->
+    <div id="viewAdversarial" class="hidden space-y-6 animate-fade-in">
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl space-y-6">
+        <div class="border-b border-slate-800/80 pb-4">
           <div class="flex items-center space-x-3">
-            <div class="h-8 w-8 rounded-lg bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
-              <i data-lucide="figma" class="w-4 h-4 text-pink-400"></i>
+            <div class="h-9 w-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+              <i data-lucide="shield-alert" class="w-5 h-5 text-amber-400"></i>
             </div>
             <div>
-              <h3 class="font-semibold text-slate-100 text-sm">Figma Live Design Screen</h3>
-              <p class="text-xs text-slate-400">Interactive live prototype from project: <code class="text-pink-300">screen (0-1)</code></p>
+              <h2 class="font-bold text-slate-100 text-lg">Adversarial Hard-Rule Test Suite</h2>
+              <p class="text-xs text-slate-400">Deterministic validation that negations, exact numbers, and critical constraints survive compression without loss.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Test Case 1 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">Case 1: Dropped Negation Trap</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Deterministic Rule</span>
+            </div>
+            <p class="text-xs text-slate-300 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+              "Constraint: DO NOT use MongoDB for this project under any circumstances."
+            </p>
+            <p class="text-[11px] text-slate-400">Must never be filtered or paraphrased into an affirmative. The negation "DO NOT use MongoDB" must survive byte-for-byte.</p>
+            <button type="button" onclick="runAdversarialCase(1)" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center justify-center space-x-1.5">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Test in Engine</span>
+            </button>
+          </div>
+
+          <!-- Test Case 2 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Case 2: Exact Numbers & Units</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Number Preservation</span>
+            </div>
+            <p class="text-xs text-slate-300 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+              "Timeout is set to 30s. Enterprise SLA is $999/mo with 30 calendar days refund window."
+            </p>
+            <p class="text-[11px] text-slate-400">Exact numerical thresholds must survive compression rather than being rounded or approximated.</p>
+            <button type="button" onclick="runAdversarialCase(2)" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center justify-center space-x-1.5">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span>Test in Engine</span>
+            </button>
+          </div>
+
+          <!-- Test Case 3 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Case 3: Soft vs Hard Constraint</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">Tagging Gate</span>
+            </div>
+            <p class="text-xs text-slate-300 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+              "The API must remain stateless" vs "Ideally the API would be stateless"
+            </p>
+            <p class="text-[11px] text-slate-400">"Must remain stateless" is pinned; "Ideally" is treated as soft preference and not over-pinned.</p>
+            <button type="button" onclick="runAdversarialCase(3)" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center justify-center space-x-1.5">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-purple-400"></i>
+              <span>Test in Engine</span>
+            </button>
+          </div>
+
+          <!-- Test Case 4 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-rose-400 uppercase tracking-wider">Case 4: Deduplication Trap</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20">Semantic Separation</span>
+            </div>
+            <p class="text-xs text-slate-300 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+              "We use Postgres." vs "We're migrating off Postgres next quarter."
+            </p>
+            <p class="text-[11px] text-slate-400">Must not merge conflicting temporal states despite high word similarity.</p>
+            <button type="button" onclick="runAdversarialCase(4)" class="w-full py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 transition flex items-center justify-center space-x-1.5">
+              <i data-lucide="play" class="w-3.5 h-3.5 text-rose-400"></i>
+              <span>Test in Engine</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- End viewAdversarial -->
+
+
+    <!-- =========================================================================
+         TAB 3: PIPELINE ARCHITECTURE
+         ========================================================================= -->
+    <div id="viewArchitecture" class="hidden space-y-6 animate-fade-in">
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl space-y-6">
+        <div class="border-b border-slate-800/80 pb-4">
+          <div class="flex items-center space-x-3">
+            <div class="h-9 w-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center">
+              <i data-lucide="git-merge" class="w-5 h-5 text-cyan-400"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-slate-100 text-lg">ContextFlow 6-Stage Pipeline Architecture</h2>
+              <p class="text-xs text-slate-400">Sequential multi-tiered optimization guaranteeing coherence, resilience, and cost efficiency.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          
+          <!-- Stage 1 -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start space-x-4">
+            <div class="h-8 w-8 rounded-lg bg-blue-500/20 text-blue-400 font-mono font-bold flex items-center justify-center shrink-0">1</div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-semibold text-slate-200">Stage 1: Tier 0 Deterministic Prep (&lt;5ms, $0 Compute)</h4>
+              <p class="text-xs text-slate-400">Performs semantic chunking, tags entities (`SYSTEM`, `PERSISTENT_CONSTRAINT`, `DOC`, `TOOL_OUTPUT`), and pins critical constraints and negations.</p>
+            </div>
+          </div>
+
+          <!-- Stage 2 -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start space-x-4">
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-mono font-bold flex items-center justify-center shrink-0">2</div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-semibold text-slate-200">Stage 2: Cost-Aware Routing Decision</h4>
+              <p class="text-xs text-slate-400">Evaluates marginal savings vs optimizer compute. Short-circuits tiny requests with `SKIP`, executes fast semantic filter with `LIGHT`, or full compression pipeline with `FULL`.</p>
+            </div>
+          </div>
+
+          <!-- Stage 3 -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start space-x-4">
+            <div class="h-8 w-8 rounded-lg bg-teal-500/20 text-teal-400 font-mono font-bold flex items-center justify-center shrink-0">3</div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-semibold text-slate-200">Stage 3: Tier 1 Semantic Relevance & Deduplication</h4>
+              <p class="text-xs text-slate-400">Two-threshold separation: Looser cosine threshold ($\tau_{rel}=0.18$) filters irrelevant chunks; Stricter threshold ($\tau_{dedup}=0.85$) merges redundant passages.</p>
+            </div>
+          </div>
+
+          <!-- Stage 4 -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start space-x-4">
+            <div class="h-8 w-8 rounded-lg bg-purple-500/20 text-purple-400 font-mono font-bold flex items-center justify-center shrink-0">4</div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-semibold text-slate-200">Stage 4: Tier 2 Compression & Budget Knapsack (with Graceful Fallback)</h4>
+              <p class="text-xs text-slate-400">Extractively compresses verbose body chunks while protecting pinned sections. If compression times out or throws, catches exception and falls back to Tier 1 without failing.</p>
+            </div>
+          </div>
+
+          <!-- Stage 5 -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 flex items-start space-x-4">
+            <div class="h-8 w-8 rounded-lg bg-amber-500/20 text-amber-400 font-mono font-bold flex items-center justify-center shrink-0">5</div>
+            <div class="space-y-1">
+              <h4 class="text-sm font-semibold text-slate-200">Stage 5: Coherence Assembly (Position Flow)</h4>
+              <p class="text-xs text-slate-400">Reorders surviving chunks strictly by original sequence position (`#position`), placing System prompt at top and Constraints immediately before the query.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- End viewArchitecture -->
+
+
+    <!-- =========================================================================
+         TAB 4: FIGMA LIVE CANVAS
+         ========================================================================= -->
+    <div id="viewFigma" class="hidden space-y-4 animate-fade-in">
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+          <div class="flex items-center space-x-3">
+            <div class="h-9 w-9 rounded-xl bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
+              <i data-lucide="figma" class="w-5 h-5 text-pink-400"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-slate-100 text-base">Figma Live Design Screen</h3>
+              <p class="text-xs text-slate-400">Interactive live prototype from project: <code class="text-pink-300">screen (node: 0-1)</code></p>
             </div>
           </div>
           <div class="flex items-center space-x-3">
             <a href="https://www.figma.com/design/j6IwucRiN2RgtQ5UI4vyDJ/screen?node-id=0-1&t=V5j8bt3zTpQgF6d5-1" target="_blank" rel="noopener noreferrer"
-               class="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition flex items-center space-x-1.5">
+               class="px-3.5 py-2 rounded-xl text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 transition flex items-center space-x-2 shadow-sm">
               <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
               <span>Open in Figma</span>
             </a>
@@ -105,7 +686,7 @@
         </div>
 
         <!-- Figma Embed Frame -->
-        <div class="w-full h-[650px] rounded-xl overflow-hidden border border-slate-800 bg-slate-950/80 relative">
+        <div class="w-full h-[680px] rounded-xl overflow-hidden border border-slate-800 bg-slate-950/90 relative shadow-inner">
           <iframe id="figmaIframe" 
                   class="w-full h-full border-0" 
                   src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Fdesign%2Fj6IwucRiN2RgtQ5UI4vyDJ%2Fscreen%3Fnode-id%3D0-1" 
@@ -113,371 +694,67 @@
           </iframe>
         </div>
       </div>
-    </section>
+    </div><!-- End viewFigma -->
 
-    <!-- Dashboard Content Wrapper -->
-    <div id="dashboardViewWrapper" class="space-y-8">
 
-    <!-- Fallback Alert Banner (Shown when fallback is triggered) -->
-    <div id="fallbackBanner" class="hidden p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start space-x-3 animate-fade-in">
-      <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
-      <div>
-        <h4 class="font-semibold text-sm text-amber-200">Graceful Fallback Triggered</h4>
-        <p class="text-xs text-amber-300/90 mt-0.5" id="fallbackReasonText">Tier-2 compression experienced a failure. Pipeline gracefully fell back to Tier-1 relevance + deduplication without crashing.</p>
-      </div>
-    </div>
-
-    <!-- Top Section: Playground Inputs & Controls -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      <!-- Left Input Panel (7 Cols) -->
-      <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
-            <h2 class="font-semibold text-slate-200 text-sm tracking-wide uppercase">Input Configuration</h2>
-          </div>
-          <span class="text-xs text-slate-400 font-mono" id="liveTokenCounter">Context: ~0 tokens</span>
-        </div>
-
-        <!-- Presets Row -->
-        <div>
-          <label class="text-xs font-medium text-slate-400 block mb-2">Quick Demo Presets</label>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" onclick="loadPreset('support')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
-              <span>🎧 Customer Support (Fluff/Dedup)</span>
-            </button>
-            <button type="button" onclick="loadPreset('spec')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
-              <span>🔒 Strict Spec (System + Constraints)</span>
-            </button>
-            <button type="button" onclick="loadPreset('logs')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
-              <span>📜 Verbose Log Dump</span>
-            </button>
-            <button type="button" onclick="loadPreset('skip')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
-              <span>⚡ Short Context (Skip Route)</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Query Input -->
-        <div>
-          <label class="text-xs font-medium text-slate-300 block mb-1.5">User Query</label>
-          <input type="text" id="queryInput" placeholder="What is the refund policy for annual enterprise tier subscriptions?" 
-                 class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
-        </div>
-
-        <!-- Context Input -->
-        <div>
-          <div class="flex items-center justify-between mb-1.5">
-            <label class="text-xs font-medium text-slate-300">Raw Context (System Prompts, Docs, RAG Chunks)</label>
-            <span class="text-[11px] text-slate-500" id="contextCharCount">0 chars</span>
-          </div>
-          <textarea id="contextInput" rows="9" placeholder="Paste verbose context, RAG passages, instructions, or select a preset above..."
-                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl p-4 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-y"></textarea>
-        </div>
-
-        <!-- Controls: Budget & Simulation -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
-          <div>
-            <div class="flex justify-between items-center mb-1.5">
-              <label class="text-xs font-medium text-slate-300">Token Budget</label>
-              <span class="text-xs font-mono text-emerald-400 font-semibold" id="budgetDisplay">250 tokens</span>
+    <!-- =========================================================================
+         TAB 5: API DOCUMENTATION & CONTRACTS
+         ========================================================================= -->
+    <div id="viewDocs" class="hidden space-y-6 animate-fade-in">
+      <div class="glass-panel rounded-2xl p-6 shadow-2xl space-y-6">
+        <div class="border-b border-slate-800/80 pb-4">
+          <div class="flex items-center space-x-3">
+            <div class="h-9 w-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center">
+              <i data-lucide="file-code" class="w-5 h-5 text-indigo-400"></i>
             </div>
-            <div class="flex items-center space-x-3">
-              <input type="range" id="budgetRange" min="50" max="2000" step="25" value="250" 
-                     class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-              <input type="number" id="budgetNumber" min="10" max="10000" value="250"
-                     class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-center text-slate-100 focus:outline-none focus:border-emerald-500">
+            <div>
+              <h2 class="font-bold text-slate-100 text-lg">ContextFlow API Specification</h2>
+              <p class="text-xs text-slate-400">Three distinct, unbundled middleware endpoints.</p>
             </div>
           </div>
-
-          <!-- Fallback Simulator Toggle -->
-          <div class="flex flex-col justify-center">
-            <label class="text-xs font-medium text-slate-400 mb-1.5">Testing & Resilience</label>
-            <label class="flex items-center space-x-2.5 cursor-pointer select-none">
-              <input type="checkbox" id="simulateFailureToggle" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-amber-500 accent-amber-500">
-              <span class="text-xs text-slate-300">Simulate Tier-2 Compression Failure</span>
-            </label>
-          </div>
         </div>
 
-        <!-- Execution Action Buttons -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          <!-- Button 1: Analyze -->
-          <button type="button" id="btnAnalyze" onclick="executeAnalyze()"
-                  class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-semibold hover:border-slate-600 transition flex items-center justify-center space-x-2 shadow-sm">
-            <i data-lucide="compass" class="w-4 h-4 text-blue-400"></i>
-            <span>POST /analyze</span>
-          </button>
+        <div class="space-y-6 text-xs">
+          
+          <!-- Endpoint 1 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 space-y-3">
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-1 rounded-md bg-blue-500/20 text-blue-300 font-mono font-bold">POST</span>
+              <code class="text-sm font-bold text-slate-200">/analyze</code>
+            </div>
+            <p class="text-slate-400">Dry-run cost estimation & routing decision. No paid LLM calls or optimization execution.</p>
+            <pre class="bg-slate-900 p-3 rounded-lg text-slate-300 font-mono overflow-x-auto">curl -X POST http://127.0.0.1:8000/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"query": "...", "context": "...", "token_budget": 250}'</pre>
+          </div>
 
-          <!-- Button 2: Optimize -->
-          <button type="button" id="btnOptimize" onclick="executeOptimize()"
-                  class="w-full py-2.5 px-4 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
-            <i data-lucide="zap" class="w-4 h-4"></i>
-            <span>POST /optimize</span>
-          </button>
+          <!-- Endpoint 2 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 space-y-3">
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-1 rounded-md bg-emerald-500/20 text-emerald-300 font-mono font-bold">POST</span>
+              <code class="text-sm font-bold text-slate-200">/optimize</code>
+            </div>
+            <p class="text-slate-400">Executes the 6-stage optimization pipeline. Returns optimized context, token waterfall, and stage latencies (no LLM inference).</p>
+            <pre class="bg-slate-900 p-3 rounded-lg text-slate-300 font-mono overflow-x-auto">curl -X POST http://127.0.0.1:8000/optimize \
+  -H "Content-Type: application/json" \
+  -d '{"query": "...", "context": "...", "token_budget": 250}'</pre>
+          </div>
 
-          <!-- Button 3: Optimize & Answer -->
-          <button type="button" id="btnOptimizeAndAnswer" onclick="executeOptimizeAndAnswer()"
-                  class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-400 hover:to-emerald-300 text-slate-950 font-bold text-xs shadow-lg shadow-teal-500/20 transition flex items-center justify-center space-x-2">
-            <i data-lucide="sparkles" class="w-4 h-4"></i>
-            <span>POST /optimize-and-answer</span>
-          </button>
+          <!-- Endpoint 3 -->
+          <div class="bg-slate-950/80 p-5 rounded-xl border border-slate-800 space-y-3">
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-1 rounded-md bg-teal-500/20 text-teal-300 font-mono font-bold">POST</span>
+              <code class="text-sm font-bold text-slate-200">/optimize-and-answer</code>
+            </div>
+            <p class="text-slate-400">Demo convenience endpoint. Runs optimization, executes downstream LLM inference, quality evaluation, and cost comparison.</p>
+            <pre class="bg-slate-900 p-3 rounded-lg text-slate-300 font-mono overflow-x-auto">curl -X POST http://127.0.0.1:8000/optimize-and-answer \
+  -H "Content-Type: application/json" \
+  -d '{"query": "...", "context": "...", "token_budget": 250}'</pre>
+          </div>
+
         </div>
       </div>
-
-      <!-- Right Metrics Overview (5 Cols) -->
-      <div class="lg:col-span-5 space-y-4">
-
-        <!-- Card: Token Reduction Overview -->
-        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Token Efficiency</span>
-            <span id="routeBadge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">ROUTE: READY</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3 text-center my-4">
-            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-              <span class="text-[11px] text-slate-400 block">Original</span>
-              <span class="text-xl font-bold font-mono text-slate-200" id="metricOriginalTokens">0</span>
-              <span class="text-[10px] text-slate-500">tokens</span>
-            </div>
-            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-              <span class="text-[11px] text-slate-400 block">Optimized</span>
-              <span class="text-xl font-bold font-mono text-emerald-400" id="metricOptimizedTokens">0</span>
-              <span class="text-[10px] text-slate-500">tokens</span>
-            </div>
-            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
-              <span class="text-[11px] text-slate-400 block">Reduction</span>
-              <span class="text-xl font-bold font-mono text-teal-400" id="metricReductionPct">0%</span>
-              <span class="text-[10px] text-slate-500">saved</span>
-            </div>
-          </div>
-
-          <!-- Progress Bar -->
-          <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-            <div id="reductionProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-          </div>
-        </div>
-
-        <!-- Card: Cost Comparison -->
-        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cost Impact (GPT-4o)</span>
-            <span id="savingsPctBadge" class="text-xs font-mono font-bold text-emerald-400">0% Cost Saved</span>
-          </div>
-
-          <div class="space-y-2.5 text-xs">
-            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-              <span class="text-slate-400">Baseline Raw Prompt Cost:</span>
-              <span class="font-mono text-slate-200 font-semibold" id="costBaseline">$0.00000</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-              <span class="text-slate-400">Optimizer Compute Overhead:</span>
-              <span class="font-mono text-slate-400" id="costOptimizer">$0.00000</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
-              <span class="text-slate-400">Optimized LLM Inference Cost:</span>
-              <span class="font-mono text-emerald-400 font-semibold" id="costOptimizedLLM">$0.00000</span>
-            </div>
-            <div class="flex justify-between items-center py-1.5 bg-emerald-500/5 px-2 rounded-lg border border-emerald-500/20">
-              <span class="font-medium text-emerald-300">Total Optimized Cost:</span>
-              <span class="font-mono text-emerald-300 font-bold" id="costTotalOptimized">$0.00000</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card: Pipeline Latency & Quality -->
-        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl grid grid-cols-2 gap-4">
-          <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Pipeline Latency</span>
-            <div class="flex items-baseline space-x-1">
-              <span class="text-2xl font-bold font-mono text-slate-100" id="metricTotalLatency">0.0</span>
-              <span class="text-xs text-slate-400">ms</span>
-            </div>
-            <span class="text-[11px] text-slate-500" id="llmLatencySub">LLM Inference: 0 ms</span>
-          </div>
-          <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Quality Eval</span>
-            <div class="flex items-baseline space-x-1">
-              <span class="text-2xl font-bold font-mono text-teal-300" id="metricQualityScore">--</span>
-            </div>
-            <span class="text-[11px] text-slate-500" id="qualitySub">Evaluated by Person 3</span>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Middle Section: Stage-by-Stage Waterfall & Latency Breakdown -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      <!-- Token Waterfall Chart (7 Cols) -->
-      <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
-            <h3 class="font-semibold text-slate-200 text-sm">Stage-by-Stage Token Waterfall</h3>
-          </div>
-          <span class="text-xs text-slate-400">Tokens at each pipeline checkpoint</span>
-        </div>
-        <div class="h-56 relative">
-          <canvas id="waterfallChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Stage Latency Breakdown (5 Cols) -->
-      <div class="lg:col-span-5 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="clock" class="w-4 h-4 text-teal-400"></i>
-            <h3 class="font-semibold text-slate-200 text-sm">Per-Stage Latency Breakdown</h3>
-          </div>
-          <span class="text-xs font-mono text-slate-400 font-semibold" id="latencySumDisplay">0.0 ms</span>
-        </div>
-
-        <div class="space-y-3 pt-1 text-xs">
-          <!-- Chunking -->
-          <div>
-            <div class="flex justify-between text-slate-400 mb-1">
-              <span>Stage 1: Tier 0 Chunking & Tagging</span>
-              <span class="font-mono text-slate-200" id="latChunking">0.0 ms</span>
-            </div>
-            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-              <div id="barLatChunking" class="bg-blue-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-
-          <!-- Relevance -->
-          <div>
-            <div class="flex justify-between text-slate-400 mb-1">
-              <span>Stage 3: Tier 1 Relevance Filter</span>
-              <span class="font-mono text-slate-200" id="latRelevance">0.0 ms</span>
-            </div>
-            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-              <div id="barLatRelevance" class="bg-emerald-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-
-          <!-- Dedup -->
-          <div>
-            <div class="flex justify-between text-slate-400 mb-1">
-              <span>Stage 3: Tier 1 Deduplication</span>
-              <span class="font-mono text-slate-200" id="latDedup">0.0 ms</span>
-            </div>
-            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-              <div id="barLatDedup" class="bg-teal-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-
-          <!-- Compression -->
-          <div>
-            <div class="flex justify-between text-slate-400 mb-1">
-              <span>Stage 4: Tier 2 Compression & Budget</span>
-              <span class="font-mono text-slate-200" id="latCompression">0.0 ms</span>
-            </div>
-            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-              <div id="barLatCompression" class="bg-purple-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-
-          <!-- Assembly -->
-          <div>
-            <div class="flex justify-between text-slate-400 mb-1">
-              <span>Stage 5: Coherence Assembly</span>
-              <span class="font-mono text-slate-200" id="latAssembly">0.0 ms</span>
-            </div>
-            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
-              <div id="barLatAssembly" class="bg-amber-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Bottom Section 1: Coherence & Answer Visualizer -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      <!-- Assembled Prompt Box (7 Cols) -->
-      <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="git-commit" class="w-4 h-4 text-emerald-400"></i>
-            <h3 class="font-semibold text-slate-200 text-sm">Optimized Assembled Context (Coherence Preserved)</h3>
-          </div>
-          <button type="button" onclick="copyOptimizedContext()" class="text-xs text-slate-400 hover:text-emerald-400 transition flex items-center space-x-1">
-            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-            <span>Copy</span>
-          </button>
-        </div>
-        <div class="text-[11px] text-slate-400 flex items-center space-x-3">
-          <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-blue-400 inline-block"></span><span>System Top</span></span>
-          <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span><span>Body in Position Order</span></span>
-          <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-amber-400 inline-block"></span><span>Constraints Pre-Query</span></span>
-        </div>
-        <pre id="optimizedContextView" class="w-full bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 max-h-72 overflow-y-auto whitespace-pre-wrap leading-relaxed">No optimization run yet.</pre>
-      </div>
-
-      <!-- LLM Answer Box (5 Cols) -->
-      <div class="lg:col-span-5 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <i data-lucide="bot" class="w-4 h-4 text-teal-400"></i>
-            <h3 class="font-semibold text-slate-200 text-sm">Downstream LLM Output</h3>
-          </div>
-          <span class="text-xs font-mono text-slate-400" id="llmModelBadge">GPT-4o</span>
-        </div>
-        <div id="llmAnswerContainer" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 min-h-[18rem] max-h-72 overflow-y-auto text-xs text-slate-200 leading-relaxed flex flex-col justify-between">
-          <div id="llmAnswerText" class="text-slate-400 italic">
-            Run "POST /optimize-and-answer" to generate live LLM inference with this prompt.
-          </div>
-          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Quality Verification: <strong class="text-teal-300" id="ansQualityBadge">Pending</strong></span>
-            <span id="ansLatencyBadge">Latency: -- ms</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Bottom Section 2: Chunk-Level Audit Inspector -->
-    <section class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <i data-lucide="list-tree" class="w-4 h-4 text-emerald-400"></i>
-          <h3 class="font-semibold text-slate-200 text-sm">Chunk-Level Audit Inspector & Routing Decisions</h3>
-        </div>
-        <div class="flex items-center space-x-4 text-xs font-mono" id="chunkSummaryCounters">
-          <span>Total: <strong class="text-slate-200" id="cntTotal">0</strong></span>
-          <span>Removed: <strong class="text-rose-400" id="cntRemoved">0</strong></span>
-          <span>Merged: <strong class="text-amber-400" id="cntMerged">0</strong></span>
-          <span>Compressed: <strong class="text-purple-400" id="cntCompressed">0</strong></span>
-          <span>Pinned: <strong class="text-emerald-400" id="cntPinned">0</strong></span>
-        </div>
-      </div>
-
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-950/40">
-              <th class="py-2.5 px-3">ID</th>
-              <th class="py-2.5 px-3">Pos</th>
-              <th class="py-2.5 px-3">Tag / Type</th>
-              <th class="py-2.5 px-3">Tokens</th>
-              <th class="py-2.5 px-3">Relevance</th>
-              <th class="py-2.5 px-3">Action Taken</th>
-              <th class="py-2.5 px-4">Content Preview</th>
-            </tr>
-          </thead>
-          <tbody id="chunksTableBody" class="divide-y divide-slate-800/60 font-mono text-[11px]">
-            <tr>
-              <td colspan="7" class="py-6 text-center text-slate-500">Run an optimization to inspect chunk-level decisions.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    </div><!-- End dashboardViewWrapper -->
+    </div><!-- End viewDocs -->
 
   </main>
 
