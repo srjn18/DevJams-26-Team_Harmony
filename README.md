@@ -60,7 +60,7 @@ The optimization layer attempts to remove unnecessary tokens while retaining the
 Query + Context
       │
       ▼
-┌─────────────────────┐
+┌──────────────────────┐
 │  Context Analyzer    │   Estimates cost vs savings
 └──────────┬───────────┘
       decides SKIP / LIGHT / FULL
