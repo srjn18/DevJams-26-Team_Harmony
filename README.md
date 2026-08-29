@@ -66,19 +66,19 @@ Query + Context
       decides SKIP / LIGHT / FULL
       │
       ▼
-┌─────────────────────┐
+┌──────────────────────┐
 │  Optimization Layer  │   Ranks + compresses context
 └──────────┬───────────┘
       │
       ▼
-┌─────────────────────┐
-│         LLM           │   Generates the final answer
+┌──────────────────────┐
+│         LLM          │   Generates the final answer
 └──────────┬───────────┘
       │
       ▼
-┌─────────────────────┐
-│ Evaluation & Metrics  │   Compares quality, cost, latency
-└─────────────────────┘
+┌──────────────────────┐
+│ Evaluation & Metrics │   Compares quality, cost, latency
+└──────────────────────┘
 ```
 
 ### Routing decision — the cost-aware gate
@@ -237,34 +237,7 @@ Responsibilities:
 The four components work together as a single pipeline:
 
 ```
-USER
- │
- ▼
-User Query + Context
- │
- ▼
-Prathvik — Application / API
- │
- ▼
-Vandya — Routing & LLM Layer
- │
- ▼
-Pratham — Semantic Ranking
- │
- ▼
-Srujan — Context Compression
- │
- ▼
-Optimized Context
- │
- ▼
-LLM
- │
- ▼
-Answer
- │
- ▼
-Evaluation & Metrics
+
 ```
 
 ---
