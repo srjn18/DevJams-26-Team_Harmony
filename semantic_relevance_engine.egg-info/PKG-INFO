@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: semantic_relevance_engine
+Version: 0.1.0
+Summary: Semantic Relevance Engine for LLM Context Optimization Middleware
+Requires-Python: >=3.9
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: numpy>=1.20.0
+Provides-Extra: local-models
+Requires-Dist: sentence-transformers>=2.2.0; extra == "local-models"
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary

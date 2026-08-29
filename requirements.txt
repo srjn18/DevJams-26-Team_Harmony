@@ -1,0 +1,4 @@
+pydantic>=2.0.0
+numpy>=1.20.0
+# Optional for local neural models:
+# sentence-transformers>=2.2.0

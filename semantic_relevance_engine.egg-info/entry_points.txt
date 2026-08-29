@@ -1,0 +1,2 @@
+[console_scripts]
+semantic-relevance-engine = semantic_relevance_engine.cli:main
