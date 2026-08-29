@@ -237,7 +237,22 @@ Responsibilities:
 The four components work together as a single pipeline:
 
 ```
-
+User query + context
+        │
+        ▼
+Application / API ─────────── Prathvik
+        │
+        ▼
+Routing decision ──────────── Vandya
+        │
+        ▼
+Rank + compress ────────────  Pratham ranks, Srujan compresses
+        │
+        ▼
+LLM call ───────────────────  Vandya
+        │
+        ▼
+Evaluation & metrics ───────  Vandya
 ```
 
 ---
