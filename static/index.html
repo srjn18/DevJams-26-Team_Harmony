@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus — LLM Context Optimization Middleware</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            },
+            dark: {
+              900: '#0b0f17',
+              800: '#111827',
+              700: '#1f2937',
+              600: '#374151',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-[#0a0d14] text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+
+  <!-- Top Header Navigation -->
+  <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="layers" class="w-5 h-5 text-slate-950 font-bold"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-lg tracking-tight text-white">Nexus</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">Context Middleware</span>
+          </div>
+          <p class="text-xs text-slate-400">Deterministic Chunking • Semantic Relevance • Compression • Coherence</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-4">
+        <!-- Pipeline Status Pill -->
+        <div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
+          <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-slate-300">Endpoints: <strong class="text-emerald-400">Ready</strong></span>
+        </div>
+        <!-- Route Badge -->
+        <div id="routeHeaderBadge" class="hidden px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border">
+          ROUTE: <span id="routeHeaderValue">FULL</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Fallback Alert Banner (Shown when fallback is triggered) -->
+    <div id="fallbackBanner" class="hidden p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start space-x-3 animate-fade-in">
+      <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+      <div>
+        <h4 class="font-semibold text-sm text-amber-200">Graceful Fallback Triggered</h4>
+        <p class="text-xs text-amber-300/90 mt-0.5" id="fallbackReasonText">Tier-2 compression experienced a failure. Pipeline gracefully fell back to Tier-1 relevance + deduplication without crashing.</p>
+      </div>
+    </div>
+
+    <!-- Top Section: Playground Inputs & Controls -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Input Panel (7 Cols) -->
+      <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+            <h2 class="font-semibold text-slate-200 text-sm tracking-wide uppercase">Input Configuration</h2>
+          </div>
+          <span class="text-xs text-slate-400 font-mono" id="liveTokenCounter">Context: ~0 tokens</span>
+        </div>
+
+        <!-- Presets Row -->
+        <div>
+          <label class="text-xs font-medium text-slate-400 block mb-2">Quick Demo Presets</label>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="loadPreset('support')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
+              <span>🎧 Customer Support (Fluff/Dedup)</span>
+            </button>
+            <button type="button" onclick="loadPreset('spec')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
+              <span>🔒 Strict Spec (System + Constraints)</span>
+            </button>
+            <button type="button" onclick="loadPreset('logs')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
+              <span>📜 Verbose Log Dump</span>
+            </button>
+            <button type="button" onclick="loadPreset('skip')" class="preset-btn px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 transition flex items-center space-x-1.5">
+              <span>⚡ Short Context (Skip Route)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Query Input -->
+        <div>
+          <label class="text-xs font-medium text-slate-300 block mb-1.5">User Query</label>
+          <input type="text" id="queryInput" placeholder="What is the refund policy for annual enterprise tier subscriptions?" 
+                 class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition">
+        </div>
+
+        <!-- Context Input -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-medium text-slate-300">Raw Context (System Prompts, Docs, RAG Chunks)</label>
+            <span class="text-[11px] text-slate-500" id="contextCharCount">0 chars</span>
+          </div>
+          <textarea id="contextInput" rows="9" placeholder="Paste verbose context, RAG passages, instructions, or select a preset above..."
+                    class="w-full bg-slate-950/80 border border-slate-700/80 rounded-xl p-4 text-xs font-mono text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-y"></textarea>
+        </div>
+
+        <!-- Controls: Budget & Simulation -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+          <div>
+            <div class="flex justify-between items-center mb-1.5">
+              <label class="text-xs font-medium text-slate-300">Token Budget</label>
+              <span class="text-xs font-mono text-emerald-400 font-semibold" id="budgetDisplay">250 tokens</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <input type="range" id="budgetRange" min="50" max="2000" step="25" value="250" 
+                     class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+              <input type="number" id="budgetNumber" min="10" max="10000" value="250"
+                     class="w-20 bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1 text-xs font-mono text-center text-slate-100 focus:outline-none focus:border-emerald-500">
+            </div>
+          </div>
+
+          <!-- Fallback Simulator Toggle -->
+          <div class="flex flex-col justify-center">
+            <label class="text-xs font-medium text-slate-400 mb-1.5">Testing & Resilience</label>
+            <label class="flex items-center space-x-2.5 cursor-pointer select-none">
+              <input type="checkbox" id="simulateFailureToggle" class="w-4 h-4 rounded bg-slate-950 border-slate-700 text-amber-500 focus:ring-amber-500 accent-amber-500">
+              <span class="text-xs text-slate-300">Simulate Tier-2 Compression Failure</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Execution Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <!-- Button 1: Analyze -->
+          <button type="button" id="btnAnalyze" onclick="executeAnalyze()"
+                  class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-semibold hover:border-slate-600 transition flex items-center justify-center space-x-2 shadow-sm">
+            <i data-lucide="compass" class="w-4 h-4 text-blue-400"></i>
+            <span>POST /analyze</span>
+          </button>
+
+          <!-- Button 2: Optimize -->
+          <button type="button" id="btnOptimize" onclick="executeOptimize()"
+                  class="w-full py-2.5 px-4 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-600/20 transition flex items-center justify-center space-x-2">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>POST /optimize</span>
+          </button>
+
+          <!-- Button 3: Optimize & Answer -->
+          <button type="button" id="btnOptimizeAndAnswer" onclick="executeOptimizeAndAnswer()"
+                  class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-400 hover:to-emerald-300 text-slate-950 font-bold text-xs shadow-lg shadow-teal-500/20 transition flex items-center justify-center space-x-2">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>POST /optimize-and-answer</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Metrics Overview (5 Cols) -->
+      <div class="lg:col-span-5 space-y-4">
+
+        <!-- Card: Token Reduction Overview -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Token Efficiency</span>
+            <span id="routeBadge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">ROUTE: READY</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 text-center my-4">
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+              <span class="text-[11px] text-slate-400 block">Original</span>
+              <span class="text-xl font-bold font-mono text-slate-200" id="metricOriginalTokens">0</span>
+              <span class="text-[10px] text-slate-500">tokens</span>
+            </div>
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+              <span class="text-[11px] text-slate-400 block">Optimized</span>
+              <span class="text-xl font-bold font-mono text-emerald-400" id="metricOptimizedTokens">0</span>
+              <span class="text-[10px] text-slate-500">tokens</span>
+            </div>
+            <div class="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+              <span class="text-[11px] text-slate-400 block">Reduction</span>
+              <span class="text-xl font-bold font-mono text-teal-400" id="metricReductionPct">0%</span>
+              <span class="text-[10px] text-slate-500">saved</span>
+            </div>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+            <div id="reductionProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Card: Cost Comparison -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cost Impact (GPT-4o)</span>
+            <span id="savingsPctBadge" class="text-xs font-mono font-bold text-emerald-400">0% Cost Saved</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Baseline Raw Prompt Cost:</span>
+              <span class="font-mono text-slate-200 font-semibold" id="costBaseline">$0.00000</span>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Optimizer Compute Overhead:</span>
+              <span class="font-mono text-slate-400" id="costOptimizer">$0.00000</span>
+            </div>
+            <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+              <span class="text-slate-400">Optimized LLM Inference Cost:</span>
+              <span class="font-mono text-emerald-400 font-semibold" id="costOptimizedLLM">$0.00000</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 bg-emerald-500/5 px-2 rounded-lg border border-emerald-500/20">
+              <span class="font-medium text-emerald-300">Total Optimized Cost:</span>
+              <span class="font-mono text-emerald-300 font-bold" id="costTotalOptimized">$0.00000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card: Pipeline Latency & Quality -->
+        <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 shadow-xl grid grid-cols-2 gap-4">
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Pipeline Latency</span>
+            <div class="flex items-baseline space-x-1">
+              <span class="text-2xl font-bold font-mono text-slate-100" id="metricTotalLatency">0.0</span>
+              <span class="text-xs text-slate-400">ms</span>
+            </div>
+            <span class="text-[11px] text-slate-500" id="llmLatencySub">LLM Inference: 0 ms</span>
+          </div>
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Quality Eval</span>
+            <div class="flex items-baseline space-x-1">
+              <span class="text-2xl font-bold font-mono text-teal-300" id="metricQualityScore">--</span>
+            </div>
+            <span class="text-[11px] text-slate-500" id="qualitySub">Evaluated by Person 3</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Middle Section: Stage-by-Stage Waterfall & Latency Breakdown -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Token Waterfall Chart (7 Cols) -->
+      <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
+            <h3 class="font-semibold text-slate-200 text-sm">Stage-by-Stage Token Waterfall</h3>
+          </div>
+          <span class="text-xs text-slate-400">Tokens at each pipeline checkpoint</span>
+        </div>
+        <div class="h-56 relative">
+          <canvas id="waterfallChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Stage Latency Breakdown (5 Cols) -->
+      <div class="lg:col-span-5 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="clock" class="w-4 h-4 text-teal-400"></i>
+            <h3 class="font-semibold text-slate-200 text-sm">Per-Stage Latency Breakdown</h3>
+          </div>
+          <span class="text-xs font-mono text-slate-400 font-semibold" id="latencySumDisplay">0.0 ms</span>
+        </div>
+
+        <div class="space-y-3 pt-1 text-xs">
+          <!-- Chunking -->
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Stage 1: Tier 0 Chunking & Tagging</span>
+              <span class="font-mono text-slate-200" id="latChunking">0.0 ms</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+              <div id="barLatChunking" class="bg-blue-400 h-1.5 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Relevance -->
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Stage 3: Tier 1 Relevance Filter</span>
+              <span class="font-mono text-slate-200" id="latRelevance">0.0 ms</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+              <div id="barLatRelevance" class="bg-emerald-400 h-1.5 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Dedup -->
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Stage 3: Tier 1 Deduplication</span>
+              <span class="font-mono text-slate-200" id="latDedup">0.0 ms</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+              <div id="barLatDedup" class="bg-teal-400 h-1.5 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Compression -->
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Stage 4: Tier 2 Compression & Budget</span>
+              <span class="font-mono text-slate-200" id="latCompression">0.0 ms</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+              <div id="barLatCompression" class="bg-purple-400 h-1.5 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Assembly -->
+          <div>
+            <div class="flex justify-between text-slate-400 mb-1">
+              <span>Stage 5: Coherence Assembly</span>
+              <span class="font-mono text-slate-200" id="latAssembly">0.0 ms</span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden">
+              <div id="barLatAssembly" class="bg-amber-400 h-1.5 rounded-full" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Section 1: Coherence & Answer Visualizer -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Assembled Prompt Box (7 Cols) -->
+      <div class="lg:col-span-7 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="git-commit" class="w-4 h-4 text-emerald-400"></i>
+            <h3 class="font-semibold text-slate-200 text-sm">Optimized Assembled Context (Coherence Preserved)</h3>
+          </div>
+          <button type="button" onclick="copyOptimizedContext()" class="text-xs text-slate-400 hover:text-emerald-400 transition flex items-center space-x-1">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy</span>
+          </button>
+        </div>
+        <div class="text-[11px] text-slate-400 flex items-center space-x-3">
+          <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-blue-400 inline-block"></span><span>System Top</span></span>
+          <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-emerald-400 inline-block"></span><span>Body in Position Order</span></span>
+          <span class="flex items-center space-x-1"><span class="h-2 w-2 rounded-full bg-amber-400 inline-block"></span><span>Constraints Pre-Query</span></span>
+        </div>
+        <pre id="optimizedContextView" class="w-full bg-slate-950/90 border border-slate-800 rounded-xl p-4 text-xs font-mono text-slate-300 max-h-72 overflow-y-auto whitespace-pre-wrap leading-relaxed">No optimization run yet.</pre>
+      </div>
+
+      <!-- LLM Answer Box (5 Cols) -->
+      <div class="lg:col-span-5 bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="bot" class="w-4 h-4 text-teal-400"></i>
+            <h3 class="font-semibold text-slate-200 text-sm">Downstream LLM Output</h3>
+          </div>
+          <span class="text-xs font-mono text-slate-400" id="llmModelBadge">GPT-4o</span>
+        </div>
+        <div id="llmAnswerContainer" class="bg-slate-950/90 border border-slate-800 rounded-xl p-4 min-h-[18rem] max-h-72 overflow-y-auto text-xs text-slate-200 leading-relaxed flex flex-col justify-between">
+          <div id="llmAnswerText" class="text-slate-400 italic">
+            Run "POST /optimize-and-answer" to generate live LLM inference with this prompt.
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Quality Verification: <strong class="text-teal-300" id="ansQualityBadge">Pending</strong></span>
+            <span id="ansLatencyBadge">Latency: -- ms</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom Section 2: Chunk-Level Audit Inspector -->
+    <section class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="list-tree" class="w-4 h-4 text-emerald-400"></i>
+          <h3 class="font-semibold text-slate-200 text-sm">Chunk-Level Audit Inspector & Routing Decisions</h3>
+        </div>
+        <div class="flex items-center space-x-4 text-xs font-mono" id="chunkSummaryCounters">
+          <span>Total: <strong class="text-slate-200" id="cntTotal">0</strong></span>
+          <span>Removed: <strong class="text-rose-400" id="cntRemoved">0</strong></span>
+          <span>Merged: <strong class="text-amber-400" id="cntMerged">0</strong></span>
+          <span>Compressed: <strong class="text-purple-400" id="cntCompressed">0</strong></span>
+          <span>Pinned: <strong class="text-emerald-400" id="cntPinned">0</strong></span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400 font-semibold bg-slate-950/40">
+              <th class="py-2.5 px-3">ID</th>
+              <th class="py-2.5 px-3">Pos</th>
+              <th class="py-2.5 px-3">Tag / Type</th>
+              <th class="py-2.5 px-3">Tokens</th>
+              <th class="py-2.5 px-3">Relevance</th>
+              <th class="py-2.5 px-3">Action Taken</th>
+              <th class="py-2.5 px-4">Content Preview</th>
+            </tr>
+          </thead>
+          <tbody id="chunksTableBody" class="divide-y divide-slate-800/60 font-mono text-[11px]">
+            <tr>
+              <td colspan="7" class="py-6 text-center text-slate-500">Run an optimization to inspect chunk-level decisions.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
