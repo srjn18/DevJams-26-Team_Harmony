@@ -54,6 +54,18 @@
       </div>
 
       <div class="flex items-center space-x-4">
+        <!-- Navigation Tabs -->
+        <div class="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs">
+          <button type="button" id="tabBtnDashboard" onclick="switchViewTab('dashboard')" class="px-3 py-1.5 rounded-lg font-medium transition bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center space-x-1.5">
+            <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i>
+            <span>Dashboard</span>
+          </button>
+          <button type="button" id="tabBtnFigma" onclick="switchViewTab('figma')" class="px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200 flex items-center space-x-1.5">
+            <i data-lucide="figma" class="w-3.5 h-3.5 text-pink-400"></i>
+            <span>Figma Canvas</span>
+          </button>
+        </div>
+
         <!-- Pipeline Status Pill -->
         <div class="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-xs">
           <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -69,6 +81,42 @@
 
   <!-- Main Container -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Figma Live Design View (Toggleable Tab) -->
+    <section id="figmaViewContainer" class="hidden space-y-4 animate-fade-in">
+      <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <div class="h-8 w-8 rounded-lg bg-pink-500/10 border border-pink-500/30 flex items-center justify-center">
+              <i data-lucide="figma" class="w-4 h-4 text-pink-400"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-slate-100 text-sm">Figma Live Design Screen</h3>
+              <p class="text-xs text-slate-400">Interactive live prototype from project: <code class="text-pink-300">screen (0-1)</code></p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-3">
+            <a href="https://www.figma.com/design/j6IwucRiN2RgtQ5UI4vyDJ/screen?node-id=0-1&t=V5j8bt3zTpQgF6d5-1" target="_blank" rel="noopener noreferrer"
+               class="px-3 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition flex items-center space-x-1.5">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+              <span>Open in Figma</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Figma Embed Frame -->
+        <div class="w-full h-[650px] rounded-xl overflow-hidden border border-slate-800 bg-slate-950/80 relative">
+          <iframe id="figmaIframe" 
+                  class="w-full h-full border-0" 
+                  src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Fdesign%2Fj6IwucRiN2RgtQ5UI4vyDJ%2Fscreen%3Fnode-id%3D0-1" 
+                  allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dashboard Content Wrapper -->
+    <div id="dashboardViewWrapper" class="space-y-8">
 
     <!-- Fallback Alert Banner (Shown when fallback is triggered) -->
     <div id="fallbackBanner" class="hidden p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-start space-x-3 animate-fade-in">
@@ -428,6 +476,8 @@
         </table>
       </div>
     </section>
+
+    </div><!-- End dashboardViewWrapper -->
 
   </main>
 
