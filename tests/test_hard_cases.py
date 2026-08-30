@@ -107,8 +107,8 @@ class TestHardCases(unittest.TestCase):
         def mock_llm_3(prompt):
             return "The user likes dark mode in their editor, which requires 30 seconds to load."
         res3 = compress_chunk(c3, "query", llm_call_fn=mock_llm_3)
-        self.assertTrue(res3.compressed)
-        self.assertIn("flag_added", getattr(res3, "trace_events", []))
+        self.assertFalse(res3.compressed)
+        self.assertIn("length_expanded_revert", getattr(res3, "trace_events", []))
 
         # 4. Correctly compresses non-critical chunk
         c4 = Chunk(id="c4", text="This is a very long and verbose sentence with lots of extra words.", token_count=20, source="document", tag="CONVERSATION", position=0, relevance_score=0.5)

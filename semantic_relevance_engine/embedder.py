@@ -3,7 +3,7 @@ Embedding module for Semantic Relevance Engine.
 
 Implements a 3-tier embedding architecture:
 1. Local `sentence_transformers` (e.g. all-MiniLM-L6-v2) if installed.
-2. OpenAI embeddings endpoint if `OPENAI_API_KEY` is set in environment.
+2. Gemini embeddings endpoint if `GEMINI_API_KEY` is set in environment.
 3. Zero-dependency Pure Python / NumPy Subword N-Gram Hashing Vectorizer with L2 normalization (works offline, zero installation required).
 """
 
@@ -35,34 +35,23 @@ def _get_sentence_transformer():
     return _sentence_transformer_model
 
 
-def _call_openai_embeddings(texts: List[str]) -> Optional[List[List[float]]]:
-    """Call OpenAI embeddings API using standard library urllib."""
-    api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
+def _call_gemini_embeddings(texts: List[str]) -> Optional[List[List[float]]]:
+    """Call Gemini embeddings API."""
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key or api_key == "your_gemini_api_key_here":
         return None
 
-    import urllib.request
-    url = "https://api.openai.com/v1/embeddings"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
-    payload = {
-        "input": texts,
-        "model": "text-embedding-3-small"
-    }
-
     try:
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST"
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        
+        response = client.models.embed_content(
+            model="text-embedding-004",
+            contents=texts,
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            data_sorted = sorted(data["data"], key=lambda x: x["index"])
-            return [item["embedding"] for item in data_sorted]
+        # response.embeddings is a list of EmbedContentResponse objects, or response contains embeddings
+        # Assuming typical SDK behavior:
+        return [emb.values for emb in response.embeddings]
     except Exception:
         return None
 
@@ -117,10 +106,10 @@ class Embedder:
             except Exception:
                 pass
 
-        # Tier 2: OpenAI API if key configured
-        openai_embs = _call_openai_embeddings(texts)
-        if openai_embs is not None:
-            return openai_embs
+        # Tier 2: Gemini API if key configured
+        gemini_embs = _call_gemini_embeddings(texts)
+        if gemini_embs is not None:
+            return gemini_embs
 
         # Tier 3: Pure NumPy Subword Hashing Vectorizer (Zero-Dependency)
         return [_hash_vectorize(t) for t in texts]

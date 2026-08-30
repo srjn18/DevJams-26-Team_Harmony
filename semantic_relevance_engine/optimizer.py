@@ -72,6 +72,11 @@ information that could affect the answer to this question: "{query}"
 Do not add information that isn't present. Do not soften or generalize
 specific claims. If in doubt, keep it rather than cut it.
 
+Do not explain, comment on, discuss, or evaluate the relevance of this text
+to the question. Only rewrite the given text itself, more concisely. If the
+text cannot be safely shortened, return it unchanged rather than adding any
+commentary about it.
+
 Context:
 {chunk_text}
 """
@@ -80,7 +85,7 @@ Context:
 def compress_chunk(chunk: Chunk, query: str, llm_call_fn=None) -> Chunk:
     """
     Compresses non-pinned chunk text using llm_call_fn. Reverts to original if
-    information is lost or empty output is received.
+    information is lost, empty output is received, or output is not shorter.
 
     Detector vs. Validator roles:
     - detect_critical_flags() is the DETECTOR: it identifies which flags are
@@ -113,6 +118,13 @@ def compress_chunk(chunk: Chunk, query: str, llm_call_fn=None) -> Chunk:
         chunk.trace_events.append("flag_lost_revert")
         return chunk
 
+    # CHECK 3 — Hard length guard: revert if compressed token count is not smaller than original.
+    compressed_token_count = approx_token_count(compressed_text)
+    if compressed_token_count >= chunk.token_count:
+        logger.warning("length_expanded_revert")
+        chunk.trace_events.append("length_expanded_revert")
+        return chunk
+
     # CHECK 2 — New-flag logging (non-blocking)
     added_flags = new_flags - original_flags
     if added_flags:
@@ -120,7 +132,7 @@ def compress_chunk(chunk: Chunk, query: str, llm_call_fn=None) -> Chunk:
         chunk.trace_events.append("flag_added")
 
     chunk.text = compressed_text
-    chunk.token_count = approx_token_count(compressed_text)
+    chunk.token_count = compressed_token_count
     chunk.compressed = True
     return chunk
 
@@ -192,16 +204,29 @@ def optimize_chunks(query: str, chunks: list[Chunk], token_budget: int,
 
     # 4. Compression
     compressed_count = 0
+    fallback_triggered = False
+    chunks_reverted_flag_loss = 0
+    empty_compression_result = 0
+    chunks_expanded_reverted = 0
     for i, c in enumerate(surviving_chunks):
         before = c.text
         try:
             compressed_chunk = compress_chunk(c, query, llm_call_fn=llm_call_fn)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Compression failed, falling back to original chunk: {e}")
             compressed_chunk = c
+            fallback_triggered = True
         
         surviving_chunks[i] = compressed_chunk
         if compressed_chunk.compressed and compressed_chunk.text != before:
             compressed_count += 1
+
+        if "flag_lost_revert" in c.trace_events:
+            chunks_reverted_flag_loss += 1
+        if "empty_compression_result" in c.trace_events:
+            empty_compression_result += 1
+        if "length_expanded_revert" in c.trace_events:
+            chunks_expanded_reverted += 1
 
     after_compression = sum(c.token_count for c in surviving_chunks)
 
@@ -221,6 +246,10 @@ def optimize_chunks(query: str, chunks: list[Chunk], token_budget: int,
         "chunks_total": chunks_total,
         "chunks_merged_duplicate": chunks_merged_duplicate,
         "chunks_compressed": compressed_count,
+        "fallback_triggered": fallback_triggered,
+        "chunks_reverted_flag_loss": chunks_reverted_flag_loss,
+        "empty_compression_result": empty_compression_result,
+        "chunks_expanded_reverted": chunks_expanded_reverted,
         "revert_policy": "loss-only",
         "critical_before": critical_before,
         "critical_after": critical_after,
