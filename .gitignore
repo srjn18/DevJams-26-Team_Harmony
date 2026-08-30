@@ -6,3 +6,10 @@ __pycache__/
 dist/
 build/
 .pytest_cache/
+.coverage
+htmlcov/
+.env
+venv/
+.venv/
+env/
+.DS_Store

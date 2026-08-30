@@ -1,5 +1,5 @@
 import unittest
-from semantic_relevance_engine import rank_chunks, optimize_chunks, Chunk, chunk_context
+from semantic_relevance_engine import rank_chunks, optimize_chunks
 
 class TestIntegrationPipeline(unittest.TestCase):
 

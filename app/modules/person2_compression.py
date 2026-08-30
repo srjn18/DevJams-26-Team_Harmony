@@ -1,4 +1,6 @@
 """Person 2 Module: Tier 2 (Critical Protection, Compression & Budget Enforcer)."""
+import math
+import os
 import re
 from typing import List, Tuple
 from app.schemas import ChunkInfo
@@ -32,14 +34,9 @@ def _compress_chunk_text(text: str, target_ratio: float = 0.65) -> str:
         return cleaned
 
     # Keep key sentences (first, last, and informative ones)
-    target_count = max(1, int(math_ceil(len(sentences) * target_ratio)))
+    target_count = max(1, int(math.ceil(len(sentences) * target_ratio)))
     selected_sentences = sentences[:target_count]
     return " ".join(selected_sentences).strip()
-
-
-def math_ceil(x: float) -> int:
-    import math
-    return math.ceil(x)
 
 
 def tier2_compress(
@@ -53,7 +50,6 @@ def tier2_compress(
     - Compresses non-critical chunks.
     - Returns (compressed_chunks, chunks_compressed_count).
     """
-    import os
     if simulate_failure:
         raise RuntimeError("Person 2 Compression Module encountered an unhandled timeout / execution error.")
 
@@ -75,6 +71,8 @@ def tier2_compress(
         except Exception:
             pass
 
+    META_REJECT_TERMS = ["extracted", "meta-notes", "summary of", "compressed version", "commentary", "here is the"]
+
     for chunk in chunks:
         # Pinned / Critical chunks are NEVER compressed
         if chunk.is_critical:
@@ -84,17 +82,30 @@ def tier2_compress(
         orig_text = chunk.text
         new_text = None
 
-        if compress_fn:
+        # Skip LLM compression on short header lines or title banners
+        is_header_block = (
+            orig_text.startswith("===") or
+            orig_text.startswith("#") or
+            len(orig_text.split()) <= 10 or
+            "document" in orig_text.lower() and len(orig_text.split()) <= 12
+        )
+
+        if compress_fn and not is_header_block:
             try:
-                # Format compression prompt
+                # Format strict compression prompt prohibiting meta notes
                 prompt = (
-                    "You are a context compression engine. "
-                    "Rewrite the following text to make it as concise as possible while retaining all facts "
-                    f"relevant to the query: '{query}'.\n\nText:\n{orig_text}"
+                    f"Task: Rewrite and compress the text below to be as short as possible while preserving "
+                    f"all specific facts, numbers, dates, SLA timeframes, dollar amounts, and technical details relevant to: '{query}'.\n"
+                    f"CRITICAL REQUIREMENT: Output ONLY the rewritten factual statements. "
+                    f"DO NOT output commentary, disclaimers, meta-notes, or phrases like 'extracted' or 'summary'.\n\n"
+                    f"Text:\n{orig_text}"
                 )
-                new_text = compress_fn(prompt).strip()
-            except Exception as e:
-                # Silent fallback to mock on any error
+                raw_compressed = compress_fn(prompt).strip()
+                
+                # Reject if LLM returned meta-commentary instead of real factual compressed text
+                if raw_compressed and not any(term in raw_compressed.lower() for term in META_REJECT_TERMS):
+                    new_text = raw_compressed
+            except Exception:
                 new_text = None
 
         if not new_text or len(new_text) >= len(orig_text):

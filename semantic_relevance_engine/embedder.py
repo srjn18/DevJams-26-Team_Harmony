@@ -9,8 +9,6 @@ Implements a 3-tier embedding architecture:
 
 import os
 import re
-import json
-import math
 import hashlib
 from typing import List, Optional
 import numpy as np

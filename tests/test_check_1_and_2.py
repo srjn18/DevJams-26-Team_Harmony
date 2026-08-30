@@ -1,9 +1,6 @@
 import unittest
-import sys
-import os
 
-from semantic_relevance_engine.critical_flags import detect_critical_flags
-from semantic_relevance_engine.optimizer import Chunk, compress_chunk, apply_pinning
+from semantic_relevance_engine.optimizer import Chunk, compress_chunk
 
 class TestChecks(unittest.TestCase):
     

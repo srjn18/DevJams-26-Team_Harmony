@@ -7,7 +7,7 @@ pairwise deduplication.
 
 import re
 import numpy as np
-from typing import List, Optional, Set
+from typing import List
 from .models import Chunk
 from .chunker import chunk_context
 from .embedder import Embedder

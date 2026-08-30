@@ -1,11 +1,10 @@
 import unittest
 import sys
-import os
 
 from semantic_relevance_engine.critical_flags import detect_critical_flags
 from semantic_relevance_engine.optimizer import (
     Chunk, apply_pinning, compute_final_score,
-    compress_chunk, enforce_budget, optimize_chunks, approx_token_count
+    compress_chunk, enforce_budget, optimize_chunks
 )
 
 class TestHardCases(unittest.TestCase):

@@ -1,6 +1,6 @@
 import re
 from dataclasses import dataclass
-from typing import Callable, List, Optional, Tuple, Dict
+from typing import Dict, List, Optional, Tuple
 from semantic_relevance_engine.grok_client import grok_answer
 from semantic_relevance_engine.llm_provider import get_answer_fn
 

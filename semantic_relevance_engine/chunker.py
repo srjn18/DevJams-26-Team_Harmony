@@ -6,7 +6,7 @@ tagging, position tracking, and critical flag detection.
 
 import re
 from typing import List, Tuple, Optional
-from datetime import datetime, timezone
+from datetime import datetime
 from .models import Chunk, SourceType, TagType
 from .critical_flags import detect_critical_flags
 

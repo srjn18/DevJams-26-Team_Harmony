@@ -1,9 +1,8 @@
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from semantic_relevance_engine.answer_quality import (
     run_llm_judge,
     evaluate_answer_quality,
-    AnswerQualityResult
 )
 
 def test_run_llm_judge_parsing_standard():

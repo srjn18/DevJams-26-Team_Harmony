@@ -1,114 +1,153 @@
-# LLM Context Optimization Middleware
+# Token-Diet (ContextFlow): Intelligent LLM Context Optimization Middleware
 
-Middleware that sits between an app and an LLM. It cuts irrelevant/redundant
-context, compresses what's useful, fits it into a token budget, and proves —
-with measured numbers — that this saves tokens/cost/latency without wrecking
-answer quality.
+## 🚀 Overview
 
-30-second pitch: *"LLM apps send huge, mostly-unnecessary contexts with every
-request. We built middleware that analyzes token usage, filters context by
-semantic relevance to the current query, scores importance, removes
-redundancy, protects critical facts (constraints, numbers, negations),
-compresses the rest, and fits it into a token budget — then measures the
-before/after token savings, cost savings, latency, and answer quality."*
+**Token-Diet (ContextFlow)** is an intelligent context optimization middleware designed to reduce the number of tokens sent to Large Language Models (LLMs) while preserving the quality and relevance of their responses.
 
-See `design.md` for the full technical spec. This file is the quickstart +
-team map.
+As LLM applications scale, large prompts and long conversation histories can become expensive and slow. A significant portion of the context sent to an LLM may be redundant, irrelevant, or unnecessarily verbose.
+
+Token-Diet addresses this problem by intelligently analyzing, ranking, deduplicating, and compressing context before it reaches the LLM. The system dynamically decides how much optimization is required based on the size and characteristics of the input context.
+
+## 🎯 Our Goal
+
+> "Send only the context that the LLM actually needs — reducing token usage, cost, and latency without sacrificing answer quality."
 
 ---
 
-## Architecture (one paragraph)
+## 💡 The Problem
 
-Request → deterministic chunking + tagging (no paid calls) → cost-aware
-routing decision (SKIP / LIGHT / FULL) → semantic relevance + dedup →
-critical-info pinning + compression + token-budget knapsack → coherence
-reassembly → LLM → evaluation (deterministic safety checks + LLM-judge
-quality). Full detail: `design.md`.
+Modern LLM applications frequently send large amounts of information with every request:
+- Long conversation histories
+- Repeated information
+- Irrelevant documents & boilerplate
+- Redundant passages
+- Large retrieved knowledge bases
+
+This creates three major problems:
+- **💰 Higher Cost** — LLM APIs charge per token. More context → more tokens → higher cost.
+- **⏱️ Higher Latency** — Larger prompts require more processing time from LLM providers.
+- **🧠 Context Overload** — Excessive noise degrades reasoning and accuracy.
 
 ---
 
-## API
+## 🧠 Our Solution
+
+Token-Diet introduces a 6-stage cost-aware middleware proxy:
+1. **Analyze Context & Cost Routing**: Decides dynamically whether to `SKIP`, run `LIGHT`, or execute `FULL` optimization.
+2. **Semantic Ranking & Tagging**: Splits context into chunks and scores semantic similarity to the query.
+3. **Deduplication & Fact Guarding**: Merges high-similarity duplicate chunks and preserves critical pinned constraints (negations, numbers, SLA terms).
+4. **Contextual Compression**: Intelligently compresses non-critical chunks while protecting pinned items.
+5. **Token Budget Enforcement & Coherence Assembly**: Fits surviving context into token limits and ensures prompt flow.
+6. **Downstream LLM & Quality Evaluation**: Measures answer quality retention, token savings, and latency waterfall.
+
+---
+
+## 🏗️ System Architecture
+
+### Pipeline Overview
 
 ```
-POST /analyze              → routing decision + cost estimate only
-POST /optimize              → optimized context + trace, no LLM call
-POST /optimize-and-answer   → /optimize then calls the LLM (demo endpoint)
+    Query + Context
+          │
+          ▼
+┌──────────────────────┐
+│   Context Analyzer   │   Estimates cost vs savings
+└──────────┬───────────┘
+decides SKIP / LIGHT / FULL
+           │
+           ▼
+┌──────────────────────┐
+│  Optimization Layer  │   Ranks + compresses context
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│         LLM          │   Generates the final answer
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ Evaluation & Metrics │   Compares quality, cost, latency
+└──────────────────────┘
 ```
 
-Full request/response shapes are in `design.md` §11.
+### Routing Decision — The Cost-Aware Gate
+
+```
+                    Context Analyzer
+                  Estimates cost vs savings
+                            │
+              ┌─────────────┼─────────────┐
+              ▼             ▼             ▼
+           SKIP            LIGHT           FULL
+      Send as-is      Rank chunks only   Rank + compress
+      no processing    no compression    + fit token budget
+```
+
+- **SKIP** — Context is small/cheap (< 120 tokens or within budget); sent as-is with zero overhead.
+- **LIGHT** — Semantic ranking + deduplication only, no compression LLM call. Cheaper path for medium contexts.
+- **FULL** — Full pipeline (ranking, deduplication, critical info protection, contextual compression, and budget packing).
 
 ---
 
-## Team map
+## ⚙️ Modular Ownership & Team
 
-| Person | Owns | Status |
+| Person | Module / Role | Ownership |
 |---|---|---|
-| **Person 1** | Chunking, tagging, embeddings, relevance, dedup | **Complete (`semantic_relevance_engine/`)** |
-| **Person 2** | Critical-info detection, pinning, compression, coherence assembly, token budget | See `HARDEST_PART.md` |
-| **Person 3** | LLM integration, cost model, routing decision, evaluation (both tracks), benchmark set | Active |
-| **Person 4** | Backend (3 endpoints), orchestration, fallback logic, dashboard | Active |
+| **Person 1 (Pratham)** | Semantic Relevance Engine | Chunking, embeddings, semantic scoring, deduplication (`semantic_relevance_engine/`, `person1_relevance.py`) |
+| **Person 2 (Srujan)** | Critical Protection & Compression | Critical info protection, contextual compression, token budget enforcement (`person2_compression.py`) |
+| **Person 3 (Vandya)** | Cost Routing & LLM Evaluation | Cost estimation, dynamic routing, LLM provider integration, answer quality evaluation (`person3_llm_eval.py`) |
+| **Person 4 (Prathvik)** | Architecture, API & Orchestration | FastAPI middleware (3 endpoints), fallback handling, pipeline orchestration, dashboard (`app/`, `static/`) |
 
 ---
 
-## Semantic Relevance Engine (Person 1 Module)
+## 🚀 Quick Start
 
-### Directory Structure
-```
-├── __init__.py           # Package exports (rank_chunks, Chunk, chunk_context, Embedder)
-├── models.py             # Pydantic schema enforcing Chunk contract
-├── chunker.py            # Multi-format context splitter & source tagger
-├── embedder.py           # Pluggable 3-tier embeddings (sentence-transformers / API / NumPy fallback)
-├── engine.py             # Scoring, pairwise deduplication, fact guard, descending sorting
-├── cli.py                # Command line interface & report generator
-├── setup.py              # Package installation configuration
-├── requirements.txt      # Python dependencies
-└── tests/
-    ├── __init__.py
-    └── test_engine.py    # Unit & integration test suite
-```
-
-### Quick Start
+### 1. Install Dependencies
 ```powershell
-# Install dependencies & package
 pip install -r requirements.txt
 pip install -e .
-
-# Run CLI
-python cli.py
-
-# Run CLI JSON export
-python cli.py --json
-
-# Run unit tests
-python -m unittest discover tests
 ```
 
-### Python API Integration
-```python
-from semantic_relevance_engine import rank_chunks, Chunk
+### 2. Environment Configuration
+Copy `.env.example` to `.env` and configure your API keys (optional; fallback mock works out-of-the-box):
+```powershell
+cp .env.example .env
+```
 
-results: list[Chunk] = rank_chunks(
-    query="How does vector indexing work?",
-    context="[SYSTEM] instructions\n[USER] question\n[DOC] documentation..."
-)
+### 3. Launch Middleware & Dashboard
+```powershell
+python run.py
+```
+Open **http://127.0.0.1:8000** in your browser to interact with the **ContextFlow Optimization Dashboard**.
+
+### 4. Run Test Suite
+```powershell
+pytest
 ```
 
 ---
 
-## Core engineering principle
+## 🔌 API Endpoints
 
-Do not optimize for maximum token reduction. Optimize for maximum useful
-information retained per token. 90% reduction that breaks the answer is a
-failure; 70% reduction that preserves quality is the win condition.
+- `POST /analyze` — Fast cost estimation and routing decision (`SKIP` / `LIGHT` / `FULL`).
+- `POST /optimize` — Core optimization pipeline returning token waterfall, trace, and compressed context.
+- `POST /optimize-and-answer` — Full end-to-end endpoint with downstream LLM answering and quality evaluation.
+- `GET /health` — Service health check.
 
-## Files in this repo
+---
 
-- `README.md` — this file
-- `design.md` — full technical design
-- `AGENT_PROMPTS.md` — ready-to-paste AI-agent briefs per teammate, with
-  locked interface contracts
-- `HARDEST_PART.md` — Person 2's spec, checklist, and starter code
-  (critical-info protection + compression + budget engine)
-- `tests/adversarial_cases.md` — the adversarial test set (negations,
-  numbers, constraints, paraphrases) used to validate the hardest module
-- `chunker.py`, `embedder.py`, `engine.py`, `models.py`, `cli.py` — Person 1's Semantic Relevance Engine
+## 📊 What We Measure
+
+| Metric | Description |
+|---|---|
+| **Token Reduction** | Percentage of input tokens eliminated (typical: 60% – 75% savings) |
+| **Cost Reduction** | Dollars saved on LLM input pricing |
+| **Quality Retention** | Semantic accuracy of downstream answer compared to uncompressed context |
+| **Latency Waterfall** | Stage-by-stage execution time (chunking, relevance, dedup, compression, assembly) |
+
+---
+
+## 👨‍💻 Team Harmony — Token-Diet
+
+*"Optimize the context. Reduce the tokens. Keep the intelligence."*

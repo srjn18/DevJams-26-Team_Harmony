@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from semantic_relevance_engine import rank_chunks, Chunk, chunk_context
-from semantic_relevance_engine.engine import has_fact_conflict, cosine_similarity
+from semantic_relevance_engine.engine import has_fact_conflict
 
 
 class TestSemanticRelevanceEngine(unittest.TestCase):

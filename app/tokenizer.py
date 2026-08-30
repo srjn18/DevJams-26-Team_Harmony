@@ -1,5 +1,4 @@
 """Token counting and manipulation utilities."""
-from typing import Optional
 
 _tiktoken_encoder = None
 

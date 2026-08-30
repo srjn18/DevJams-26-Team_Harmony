@@ -1,7 +1,7 @@
 """Master Pipeline Orchestrator for LLM Context Optimization Middleware."""
 import time
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from app.schemas import (
     ChunkInfo,
@@ -10,7 +10,7 @@ from app.schemas import (
     StageLatencyMs,
     StageTokens,
 )
-from app.tokenizer import count_tokens, truncate_to_tokens
+from app.tokenizer import count_tokens
 from app.modules.person1_relevance import (
     tier0_chunk_and_tag,
     tier1_filter_relevance,
