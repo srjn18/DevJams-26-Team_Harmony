@@ -1,814 +1,547 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ContextFlow — LLM Context Optimization Engine</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<script>
-  tailwind.config = {
-    darkMode: 'class',
-    theme: {
-      extend: {
-        fontFamily: {
-          sans: ['Geist', 'sans-serif'],
-          mono: ['JetBrains Mono', 'monospace'],
-        },
-        colors: {
-          brand: {
-            50: '#ecfdf5',
-            100: '#d1fae5',
-            500: '#10b981',
-            600: '#059669',
-            700: '#047857',
-            900: '#064e3b',
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Engine — Context Optimization Dashboard</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           },
-          dark: {
-            bg: '#090d16',
-            card: '#111827',
-            border: '#1f2937',
-            hover: '#374151',
+          colors: {
+            app: '#F7F8FA',
+            sidebar: '#FFFFFF',
+            card: '#FFFFFF',
+            borderSubtle: '#E5E7EA',
+            accent: {
+              DEFAULT: '#0E9F6E',
+              hover: '#057A55',
+              soft: '#E7F8F1',
+            },
+            textMain: '#1A1D23',
+            textMuted: '#6B7280',
           }
         }
       }
     }
-  }
-</script>
-<style>
-  .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #090d16; }
-  ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
-  @keyframes pulseGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-  .pulse-glow { animation: pulseGlow 1.5s infinite ease-in-out; }
-</style>
+  </script>
+
+  <!-- Lucide Icons & Chart.js -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="static/styles.css">
 </head>
-<body class="bg-dark-bg text-gray-100 font-sans min-h-screen flex flex-col antialiased">
+<body class="bg-[#F7F8FA] text-[#1A1D23] font-sans antialiased min-h-screen flex flex-col">
 
-<!-- Toast Notification Container -->
-<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-<!-- Top Navigation Bar -->
-<header class="border-b border-dark-border bg-dark-card/80 backdrop-blur-md sticky top-0 z-40 px-6 py-3.5 flex items-center justify-between">
-  <div class="flex items-center gap-3">
-    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 p-0.5 shadow-lg shadow-brand-500/20 flex items-center justify-center">
-      <div class="w-full h-full bg-dark-bg rounded-[10px] flex items-center justify-center">
-        <span class="material-symbols-outlined text-brand-500 text-xl">bolt</span>
+  <!-- ========================================================================= -->
+  <!-- TOP NAVIGATION BAR                                                        -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-[#E5E7EA] px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <!-- Left: Logo & Top Nav Links -->
+    <div class="flex items-center space-x-8">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-8 h-8 rounded-lg bg-[#0E9F6E] flex items-center justify-center text-white font-bold shadow-sm">
+          <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold text-base text-[#1A1D23] tracking-tight">AI Engine</span>
+            <span class="text-xs text-[#6B7280] font-mono">V2.4.0-stable</span>
+          </div>
+        </div>
       </div>
-    </div>
-    <div>
-      <div class="flex items-center gap-2">
-        <h1 class="text-base font-bold tracking-tight text-white">ContextFlow</h1>
-        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-500/10 text-brand-500 border border-brand-500/20 uppercase tracking-wider">v1.0 Middleware</span>
-      </div>
-      <p class="text-xs text-gray-400">Decoupled LLM Context Optimization &amp; Routing Engine</p>
-    </div>
-  </div>
 
-  <div class="flex items-center gap-4">
-    <!-- Backend Connection Indicator -->
-    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800/80 border border-gray-700 text-xs">
-      <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 pulse-glow"></span>
-      <span id="status-text" class="text-gray-300 font-mono text-[11px]">Connecting...</span>
+      <!-- Top Nav Item Links -->
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="#" class="text-sm font-medium text-[#1A1D23] hover:text-[#0E9F6E] transition">Dashboard</a>
+        <a href="#" class="text-sm font-medium text-[#6B7280] hover:text-[#1A1D23] transition">Optimization Engine</a>
+      </nav>
     </div>
 
-    <!-- Endpoint Selector -->
-    <div class="flex items-center gap-1.5 text-xs text-gray-400">
-      <span class="material-symbols-outlined text-sm text-gray-500">dns</span>
-      <input id="api-url-input" type="text" value="http://127.0.0.1:8000" onchange="checkHealth()" class="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1 font-mono text-xs text-gray-200 focus:outline-none focus:border-brand-500 w-44" placeholder="Backend API URL">
-    </div>
-  </div>
-</header>
-
-<!-- Main App Container -->
-<main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
-
-  <!-- PRESET SELECTION BAR -->
-  <div class="bg-dark-card border border-dark-border rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
-    <div class="flex items-center gap-2 text-xs font-semibold text-gray-300">
-      <span class="material-symbols-outlined text-brand-500 text-lg">bookmark</span>
-      <span>Sample Presets:</span>
-    </div>
-    <div class="flex flex-wrap items-center gap-2">
-      <button onclick="applyPreset('support')" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-medium text-gray-200 transition flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-blue-400"></span> Support Ticket &amp; SLA Logs
+    <!-- Right: Utility Actions & User Profile -->
+    <div class="flex items-center space-x-4">
+      <button class="p-2 text-[#6B7280] hover:text-[#1A1D23] hover:bg-[#F3F4F6] rounded-lg transition" title="Notifications">
+        <i data-lucide="bell" class="w-4 h-4"></i>
       </button>
-      <button onclick="applyPreset('contract')" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-medium text-gray-200 transition flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-purple-400"></span> Master Service Contract
+      <button class="p-2 text-[#6B7280] hover:text-[#1A1D23] hover:bg-[#F3F4F6] rounded-lg transition" title="Help & Specs">
+        <i data-lucide="help-circle" class="w-4 h-4"></i>
       </button>
-      <button onclick="applyPreset('adversarial')" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-medium text-gray-200 transition flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-amber-400"></span> Adversarial Negation Test
+      <a href="#" class="text-sm font-medium text-[#6B7280] hover:text-[#1A1D23] transition">Support</a>
+      <button class="btn-primary-v2 px-4 py-1.5 text-xs">
+        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+        <span>Deploy</span>
       </button>
-      <button onclick="clearAll()" class="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-xs font-medium text-red-400 transition flex items-center gap-1">
-        <span class="material-symbols-outlined text-sm">delete</span> Clear
-      </button>
-    </div>
-  </div>
-
-  <!-- WORKSPACE: SIDE-BY-SIDE INPUT & OUTPUT -->
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    
-    <!-- LEFT PANEL: CONTEXT INPUT & CONTROLS -->
-    <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex flex-col justify-between space-y-4 shadow-sm">
-      <div class="space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-          <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-brand-500">edit_note</span>
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Context Input</h2>
-          </div>
-          <span id="input-token-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-gray-800 text-brand-400 border border-gray-700">0 tokens</span>
-        </div>
-
-        <!-- Textarea Input -->
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1">Raw Context Payload</label>
-          <textarea id="input-context" oninput="updateInputTokenCount()" class="w-full h-52 rounded-xl bg-gray-900 border border-gray-700 p-3.5 text-xs font-mono leading-relaxed text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition resize-none" placeholder="Paste your raw context, logs, instructions or system prompt documents here..."></textarea>
-        </div>
-
-        <!-- Query Input -->
-        <div>
-          <label class="block text-xs font-medium text-gray-400 mb-1">Target Query / User Instruction</label>
-          <input id="input-query" type="text" class="w-full rounded-xl bg-gray-900 border border-gray-700 p-3 text-xs font-sans text-gray-100 placeholder-gray-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition" placeholder="Enter query for semantic relevance filtering..." value="Extract SLA terms, database constraints, and cost structure.">
-        </div>
-
-        <!-- Controls Row (Budget, Model, Fallback flag) -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 border-t border-gray-800 text-xs">
-          <div>
-            <label class="block text-[11px] text-gray-400 mb-1">Token Budget</label>
-            <input id="input-budget" type="number" value="100" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-500">
-          </div>
-          <div>
-            <label class="block text-[11px] text-gray-400 mb-1">LLM Model</label>
-            <select id="input-model" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-2 font-mono text-xs text-gray-200 focus:outline-none focus:border-brand-500">
-              <option value="gpt-4o">gpt-4o</option>
-              <option value="gpt-4o-mini">gpt-4o-mini</option>
-              <option value="llama-3.3-70b">llama-3.3-70b</option>
-            </select>
-          </div>
-          <div class="col-span-2 sm:col-span-1 flex items-end">
-            <label class="flex items-center gap-1.5 text-[11px] text-red-400 cursor-pointer p-2 bg-red-950/20 border border-red-900/30 rounded-lg w-full">
-              <input id="input-simulate-failure" type="checkbox" class="accent-red-500 rounded">
-              <span>Simulate T2 Fail</span>
-            </label>
-          </div>
-        </div>
+      <div class="w-8 h-8 rounded-full bg-[#E7F8F1] border border-[#0E9F6E]/30 flex items-center justify-center text-[#0E9F6E] font-bold text-xs">
+        AE
       </div>
+    </div>
+  </header>
 
-      <!-- Action Buttons -->
-      <div class="grid grid-cols-3 gap-2 pt-3 border-t border-gray-800">
-        <button onclick="executeAction('analyze')" id="btn-analyze" class="bg-gray-800 hover:bg-gray-700 text-gray-200 font-semibold text-xs py-2.5 px-3 rounded-xl border border-gray-700 transition flex items-center justify-center gap-1">
-          <span class="material-symbols-outlined text-base text-blue-400">analytics</span>
-          <span>Analyze</span>
+  <!-- ========================================================================= -->
+  <!-- MAIN LAYOUT: SIDEBAR + CONTENT                                            -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="w-64 bg-white border-r border-[#E5E7EA] p-4 flex flex-col justify-between shrink-0 hidden lg:flex">
+      <div class="space-y-6">
+        <!-- "+ New Project" CTA Button -->
+        <button onclick="createNewProject()" class="w-full btn-primary-v2 py-2.5 text-sm flex items-center justify-center space-x-2 rounded-lg shadow-sm">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>New Project</span>
         </button>
-        <button onclick="executeAction('optimize')" id="btn-optimize" class="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs py-2.5 px-3 rounded-xl shadow-lg shadow-brand-600/20 transition flex items-center justify-center gap-1">
-          <span id="opt-spinner" class="material-symbols-outlined text-base">bolt</span>
-          <span id="opt-btn-text">Optimize</span>
-        </button>
-        <button onclick="executeAction('optimize-and-answer')" id="btn-answer" class="bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 px-3 rounded-xl shadow-lg shadow-emerald-700/20 transition flex items-center justify-center gap-1">
-          <span id="ans-spinner" class="material-symbols-outlined text-base">smart_toy</span>
-          <span id="ans-btn-text">Opt + Answer</span>
-        </button>
-      </div>
-    </div>
 
-    <!-- RIGHT PANEL: OPTIMIZED CONTEXT OUTPUT -->
-    <div class="bg-dark-card border border-dark-border rounded-xl p-5 flex flex-col justify-between space-y-4 shadow-sm relative">
-      <div class="space-y-4">
-        <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-          <div class="flex items-center gap-2">
-            <button onclick="switchRightTab('context')" id="right-tab-context" class="px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white transition flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">task_alt</span> Optimized Context
-            </button>
-            <button onclick="switchRightTab('answer')" id="right-tab-answer" class="px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">smart_toy</span> LLM Answer <span id="answer-dot-badge" class="w-2 h-2 rounded-full bg-emerald-400 hidden"></span>
-            </button>
-          </div>
-          <div class="flex items-center gap-2">
-            <span id="output-token-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0 tokens</span>
-            <button onclick="copyOutput()" class="bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 text-xs px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-              <span class="material-symbols-outlined text-sm">content_copy</span> Copy
-            </button>
-          </div>
-        </div>
-
-        <!-- Textarea Output: Context View -->
-        <div id="view-output-context">
-          <label class="block text-xs font-medium text-gray-400 mb-1">Optimized Context Payload (Compressed by Engine)</label>
-          <textarea id="output-context" readonly class="w-full h-[315px] rounded-xl bg-gray-950 border border-brand-500/30 p-3.5 text-xs font-mono leading-relaxed text-emerald-300 placeholder-gray-700 focus:outline-none resize-none shadow-inner" placeholder="Optimized context returned from backend API will appear here after clicking Optimize..."></textarea>
-        </div>
-
-        <!-- Textarea Output: LLM Answer View -->
-        <div id="view-output-answer" class="hidden">
-          <label class="block text-xs font-medium text-emerald-400 mb-1">Downstream LLM Response (Generated from Optimized Context)</label>
-          <div id="output-answer-box" class="w-full h-[315px] rounded-xl bg-gray-950 border border-emerald-500/50 p-4 text-xs font-sans leading-relaxed text-gray-100 overflow-y-auto shadow-inner">
-            <span class="text-gray-500 italic">LLM generated response will appear here after clicking 'Opt + Answer'...</span>
-          </div>
-        </div>
+        <!-- Sidebar Navigation List (Streamlined & Clean) -->
+        <nav class="space-y-1">
+          <a href="#" class="sidebar-nav-item active">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>Optimization Engine</span>
+          </a>
+        </nav>
       </div>
 
-      <!-- Quick Telemetry Bar -->
-      <div class="pt-3 border-t border-gray-800 flex items-center justify-between text-xs text-gray-400">
-        <div>Tokens: <strong id="res-before" class="text-white">--</strong> $\rightarrow$ <strong id="res-after" class="text-emerald-400 font-bold">--</strong></div>
-        <div>Saved: <strong id="res-saved" class="text-emerald-400 font-bold">--%</strong></div>
-        <div>Route: <strong id="res-route" class="text-blue-400 font-bold">--</strong></div>
-        <div>Latency: <strong id="res-latency" class="text-white">--ms</strong></div>
+      <!-- Bottom Pinned Navigation -->
+      <div class="pt-4 border-t border-[#E5E7EA] space-y-1">
+        <a href="#" class="sidebar-nav-item text-xs">
+          <i data-lucide="book" class="w-4 h-4"></i>
+          <span>Docs</span>
+        </a>
+        <a href="#" class="sidebar-nav-item text-xs text-red-600 hover:bg-red-50">
+          <i data-lucide="log-out" class="w-4 h-4"></i>
+          <span>Logout</span>
+        </a>
       </div>
-    </div>
+    </aside>
 
-  </section>
-
-  <!-- 4 METRIC CARDS ROW -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm">
-      <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Token Reduction</div>
-      <div class="flex items-baseline justify-between">
-        <div class="text-2xl font-bold text-white"><span id="card-before">--</span> <span class="text-gray-500 text-sm font-normal">$\rightarrow$</span> <span id="card-after" class="text-emerald-400">--</span></div>
-        <span id="card-reduction-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">--%</span>
-      </div>
-    </div>
-
-    <div class="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm">
-      <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Estimated Cost Savings</div>
-      <div class="flex items-baseline justify-between">
-        <div id="card-savings-val" class="text-2xl font-bold text-white">$0.00</div>
-        <span class="text-xs text-gray-500">est. per call</span>
-      </div>
-    </div>
-
-    <div class="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm">
-      <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Quality Preservation</div>
-      <div class="flex items-baseline justify-between">
-        <div id="card-quality-val" class="text-2xl font-bold text-white">—</div>
-        <span id="card-quality-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-800 text-gray-400">Zero Placeholder</span>
-      </div>
-    </div>
-
-    <div class="bg-dark-card border border-dark-border rounded-xl p-4 shadow-sm">
-      <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pipeline Latency</div>
-      <div class="flex items-baseline justify-between">
-        <div id="card-latency-val" class="text-2xl font-bold text-white">--ms</div>
-        <span class="text-xs text-gray-500">&lt;5ms tier-0</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- LLM GENERATED ANSWER SECTION (Shows only when /optimize-and-answer is called) -->
-  <section id="llm-answer-section" class="hidden bg-dark-card border border-emerald-500/40 rounded-xl p-5 shadow-sm space-y-3">
-    <div class="flex items-center justify-between border-b border-gray-800 pb-2">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-emerald-400">smart_toy</span>
-        <h3 class="text-sm font-bold text-white uppercase tracking-wider">Downstream LLM Generated Answer</h3>
-      </div>
-      <div class="flex items-center gap-3 text-xs text-gray-400">
-        <span>LLM Latency: <strong id="ans-latency" class="text-emerald-400 font-mono">--ms</strong></span>
-        <span>•</span>
-        <span>Quality Score: <strong id="ans-quality" class="text-emerald-400 font-bold">—</strong></span>
-      </div>
-    </div>
-    <div id="ans-content" class="p-4 rounded-xl bg-gray-950 font-sans text-sm text-gray-100 leading-relaxed border border-gray-800">
-      <!-- Generated Answer -->
-    </div>
-    
-    <!-- Cost Comparison Breakdown -->
-    <div id="ans-cost-breakdown" class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 text-xs">
-      <div class="p-2.5 bg-gray-900 rounded-lg border border-gray-800">
-        <span class="text-gray-500 block text-[10px] uppercase font-bold">Baseline Raw Cost</span>
-        <strong id="cost-base" class="text-gray-300 font-mono text-sm">$0.000</strong>
-      </div>
-      <div class="p-2.5 bg-gray-900 rounded-lg border border-gray-800">
-        <span class="text-gray-500 block text-[10px] uppercase font-bold">Optimizer Compute Cost</span>
-        <strong id="cost-opt" class="text-gray-300 font-mono text-sm">$0.000</strong>
-      </div>
-      <div class="p-2.5 bg-gray-900 rounded-lg border border-gray-800">
-        <span class="text-gray-500 block text-[10px] uppercase font-bold">Total Optimized Cost</span>
-        <strong id="cost-tot" class="text-emerald-400 font-mono text-sm">$0.000</strong>
-      </div>
-      <div class="p-2.5 bg-gray-900 rounded-lg border border-gray-800">
-        <span class="text-gray-500 block text-[10px] uppercase font-bold">Cost Savings %</span>
-        <strong id="cost-pct" class="text-emerald-400 font-mono text-sm">--%</strong>
-      </div>
-    </div>
-  </section>
-
-  <!-- TABBED INSPECTION PANELS (Waterfall & Chunks Detail) -->
-  <section class="bg-dark-card border border-dark-border rounded-xl p-5 shadow-sm space-y-4">
-    <div class="flex items-center justify-between border-b border-gray-800 pb-3">
-      <div class="flex items-center gap-2">
-        <button onclick="switchTab('waterfall')" id="tab-btn-waterfall" class="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-brand-600 text-white shadow transition flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">waterfall_chart</span>
-          <span>Stage Token Waterfall</span>
-        </button>
-        <button onclick="switchTab('chunks')" id="tab-btn-chunks" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">rule</span>
-          <span>Constraint &amp; Chunks Diff</span>
-        </button>
-        <button onclick="switchTab('history')" id="tab-btn-history" class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition flex items-center gap-1.5">
-          <span class="material-symbols-outlined text-sm">history</span>
-          <span>Session Telemetry History</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- TAB 1: WATERFALL -->
-    <div id="tab-waterfall" class="space-y-3">
-      <div class="space-y-2 text-xs">
-        <div>
-          <div class="flex justify-between text-gray-400 mb-1">
-            <span>Stage 0: Input Raw Context</span>
-            <span id="wf-orig" class="font-mono text-white font-bold">-- tokens (100%)</span>
-          </div>
-          <div class="w-full h-3 bg-gray-900 rounded-full overflow-hidden">
-            <div id="wf-bar-orig" class="h-full bg-red-500 transition-all duration-500" style="width: 100%;"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-gray-400 mb-1">
-            <span>Stage 1: Cosine Relevance Filter</span>
-            <span id="wf-rel" class="font-mono text-white font-bold">-- tokens</span>
-          </div>
-          <div class="w-full h-3 bg-gray-900 rounded-full overflow-hidden">
-            <div id="wf-bar-rel" class="h-full bg-blue-500 transition-all duration-500" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-gray-400 mb-1">
-            <span>Stage 2: Cross-Chunk Deduplication</span>
-            <span id="wf-dedup" class="font-mono text-white font-bold">-- tokens</span>
-          </div>
-          <div class="w-full h-3 bg-gray-900 rounded-full overflow-hidden">
-            <div id="wf-bar-dedup" class="h-full bg-indigo-500 transition-all duration-500" style="width: 0%;"></div>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between text-gray-400 mb-1">
-            <span>Stage 3 &amp; 4: Tier 2 Compression &amp; Knapsack Budget</span>
-            <span id="wf-comp" class="font-mono text-emerald-400 font-bold">-- tokens</span>
-          </div>
-          <div class="w-full h-3 bg-gray-900 rounded-full overflow-hidden">
-            <div id="wf-bar-comp" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2: CHUNKS INSPECTOR -->
-    <div id="tab-chunks" class="hidden space-y-3">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-        <div>
-          <h4 class="font-bold text-gray-400 mb-2 uppercase tracking-wider">All Chunks Tagging Detail</h4>
-          <div id="chunks-all-list" class="p-3 bg-gray-950 border border-gray-800 rounded-xl font-mono h-56 overflow-y-auto space-y-2 text-gray-300">
-            <p class="text-gray-500 italic">Run optimization to view chunk tags and actions...</p>
-          </div>
-        </div>
-        <div>
-          <h4 class="font-bold text-emerald-400 mb-2 uppercase tracking-wider">Surviving &amp; Pinned Constraints</h4>
-          <div id="chunks-surviving-list" class="p-3 bg-gray-950 border border-emerald-900/30 rounded-xl font-mono h-56 overflow-y-auto space-y-2 text-gray-300">
-            <p class="text-gray-500 italic">Surviving chunks will appear here...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: HISTORY -->
-    <div id="tab-history" class="hidden space-y-3">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-gray-900 text-gray-400 border-b border-gray-800 font-bold">
-            <tr>
-              <th class="p-2.5">ID</th>
-              <th class="p-2.5">Time</th>
-              <th class="p-2.5">Query</th>
-              <th class="p-2.5">Before</th>
-              <th class="p-2.5">After</th>
-              <th class="p-2.5">Reduction</th>
-              <th class="p-2.5">Route</th>
-            </tr>
-          </thead>
-          <tbody id="history-tbody" class="divide-y divide-gray-800 text-gray-300">
-            <tr>
-              <td colspan="7" class="p-4 text-center text-gray-500 italic">No optimization runs in this session yet.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- JAVASCRIPT APP ENGINE -->
-<script>
-const SAMPLE_PRESETS = {
-  support: {
-    context: `ENTERPRISE SUPPORT TICKET LOG & SYSTEM MANUAL - TICKET #94012
-Date: 2026-08-30
-Priority: Urgent
-Customer Tier: Enterprise ($999/mo)
-
-[CRITICAL SYSTEM CONSTRAINTS]
-1. DO NOT use MongoDB for this project under any circumstances. All persistence must use PostgreSQL.
-2. SLA Timeout is strictly set to 30s. Refund window is 30 calendar days.
-3. The core API implementation must remain strictly stateless.
-
-[SYSTEM LOG DETAILS]
-The application reported high latency in the authentication pipeline. Worker process #4 spent 450ms resolving token validation. System memory usage peaked at 82%. Subsequent retries succeeded after 200ms.
-[DUPLICATE ENTRY SECTION 4]
-The application reported high latency in the authentication pipeline. Worker process #4 spent 450ms resolving token validation. System memory usage peaked at 82%. Subsequent retries succeeded after 200ms.
-[DUPLICATE ENTRY SECTION 12]
-SLA Timeout is strictly set to 30s. Refund window is 30 calendar days. DO NOT use MongoDB for this project.
-
-[BEST PRACTICES & GENERAL DOCUMENTATION]
-Always keep your software updated to the latest minor version. Ensure logging level is set to INFO in production environments. Follow standard REST conventions for route naming.`,
-    query: "Extract SLA terms, database constraints, and cost structure."
-  },
-  contract: {
-    context: `MASTER SERVICE AGREEMENT & SLA SPECIFICATION v4.2
-Effective Date: January 1, 2026
-
-[PINNED CONTRACTUAL CLAUSES]
-- Clause 4.1: Enterprise SLA guarantees 99.99% uptime. Failure to comply results in a 15% billing credit.
-- Clause 8.3: Data retention policy requires zero storage of raw LLM prompts beyond 24 hours.
-- Clause 12.1: Timeout limit per request is strictly 1500ms.
-
-[GENERAL OVERHEAD & LEGAL BOILERPLATE]
-This agreement is governed by the laws of California. Neither party shall be liable for indirect, incidental, or consequential damages arising out of contract execution...`,
-    query: "Summarize SLA uptime guarantee, timeout limits, and data retention rules."
-  },
-  adversarial: {
-    context: `ADVERSARIAL NEGATION TEST SUITE
-Test Case ID: ADV-8891
-
-[ATTENTION ATTACK CONSTRAINTS]
-- Constraint A: DO NOT enable public registration without admin approval.
-- Constraint B: Never store API keys in plaintext environment variables.
-- Constraint C: Maximum batch size is exactly 50 items.
-
-[BACKGROUND NOISE]
-Public registration is standard for consumer apps. API keys can be stored in various configuration files or environment variables. Batch sizes range from 10 to 500 depending on database capacity.`,
-    query: "Extract all negative constraints and hard limits."
-  }
-};
-
-let activeTab = 'waterfall';
-let runCounter = 0;
-
-document.addEventListener('DOMContentLoaded', () => {
-  checkHealth();
-  updateInputTokenCount();
-});
-
-function getApiUrl() {
-  const custom = document.getElementById('api-url-input')?.value?.trim();
-  if (custom) return custom.replace(/\/+$/, '');
-  return 'http://127.0.0.1:8000';
-}
-
-async function checkHealth() {
-  const dot = document.getElementById('status-dot');
-  const txt = document.getElementById('status-text');
-  const url = getApiUrl();
-  try {
-    const res = await fetch(`${url}/health`, { method: 'GET' });
-    if (res.ok) {
-      if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
-      if (txt) txt.textContent = `Connected: ${url}`;
-    } else {
-      throw new Error('Non-200');
-    }
-  } catch (e) {
-    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
-    if (txt) txt.textContent = `Offline: ${url}`;
-  }
-}
-
-function updateInputTokenCount() {
-  const text = document.getElementById('input-context')?.value || '';
-  const tokens = text.trim() ? Math.max(1, Math.round(text.trim().length / 3.8)) : 0;
-  const badge = document.getElementById('input-token-badge');
-  if (badge) badge.textContent = `${tokens.toLocaleString()} tokens`;
-}
-
-function applyPreset(key) {
-  const preset = SAMPLE_PRESETS[key];
-  if (!preset) return;
-  document.getElementById('input-context').value = preset.context;
-  document.getElementById('input-query').value = preset.query;
-  updateInputTokenCount();
-  showToast(`Loaded ${key.toUpperCase()} preset into input.`);
-}
-
-function clearAll() {
-  document.getElementById('input-context').value = '';
-  document.getElementById('input-query').value = '';
-  document.getElementById('output-context').value = '';
-  updateInputTokenCount();
-  showToast('Input cleared.');
-}
-
-async function executeAction(actionType) {
-  const context = document.getElementById('input-context')?.value?.trim();
-  const query = document.getElementById('input-query')?.value?.trim() || "Extract key information.";
-  const budget = parseInt(document.getElementById('input-budget')?.value) || 100;
-  const model = document.getElementById('input-model')?.value || "gpt-4o";
-  const simulateFailure = document.getElementById('input-simulate-failure')?.checked || false;
-
-  if (!context) {
-    showToast('Please provide raw context text in the input box.');
-    return;
-  }
-
-  const btnOpt = document.getElementById('btn-optimize');
-  const btnAns = document.getElementById('btn-answer');
-  const btnAna = document.getElementById('btn-analyze');
-  const optSpinner = document.getElementById('opt-spinner');
-  const ansSpinner = document.getElementById('ans-spinner');
-  const ansBtnText = document.getElementById('ans-btn-text');
-
-  if (btnOpt) btnOpt.disabled = true;
-  if (btnAns) btnAns.disabled = true;
-  if (btnAna) btnAna.disabled = true;
-
-  if (actionType === 'optimize-and-answer') {
-    if (ansSpinner) ansSpinner.className = 'material-symbols-outlined text-base animate-spin';
-    if (ansBtnText) ansBtnText.textContent = 'Processing...';
-
-    switchRightTab('answer');
-    const ansBox = document.getElementById('output-answer-box');
-    if (ansBox) {
-      ansBox.innerHTML = `
-        <div class="flex flex-col items-center justify-center h-full gap-3 text-emerald-400 py-10">
-          <span class="material-symbols-outlined text-3xl animate-spin">sync</span>
-          <p class="text-xs font-semibold animate-pulse">Compressing context & requesting LLM response...</p>
-        </div>
-      `;
-    }
-  } else if (actionType === 'optimize') {
-    if (optSpinner) optSpinner.className = 'material-symbols-outlined text-base animate-spin';
-  }
-
-  const baseUrl = getApiUrl();
-  let endpoint = '/optimize';
-  if (actionType === 'analyze') endpoint = '/analyze';
-  if (actionType === 'optimize-and-answer') endpoint = '/optimize-and-answer';
-
-  try {
-    const startTime = performance.now();
-    const payload = {
-      query: query,
-      context: context,
-      token_budget: budget,
-      model: model,
-      simulate_tier2_failure: simulateFailure
-    };
-
-    const res = await fetch(`${baseUrl}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ detail: 'API Request Failed' }));
-      throw new Error(err.detail || `HTTP ${res.status}`);
-    }
-
-    const data = await res.json();
-    const elapsed = Math.round(performance.now() - startTime);
-
-    if (actionType === 'analyze') {
-      showToast(`Analyze Dry-Run Complete: Route ${data.route}, Original Tokens ${data.original_tokens}, Estimated Cost $${data.estimated_cost}`);
-      document.getElementById('res-route').textContent = data.route;
-      document.getElementById('res-before').textContent = data.original_tokens;
-    } else {
-      renderResults(data, elapsed, actionType === 'optimize-and-answer');
-      showToast(`⚡ Optimization Successful! Saved ${data.reduction_percentage}% tokens.`);
-    }
-
-  } catch (err) {
-    console.error("API Call Error:", err);
-    showToast(`Could not reach optimizer at ${baseUrl} — is the backend running? (${err.message})`);
-  } finally {
-    if (btnOpt) btnOpt.disabled = false;
-    if (btnAns) btnAns.disabled = false;
-    if (btnAna) btnAna.disabled = false;
-    if (optSpinner) optSpinner.className = 'material-symbols-outlined text-base';
-    if (ansSpinner) ansSpinner.className = 'material-symbols-outlined text-base';
-    if (ansBtnText) ansBtnText.textContent = 'Opt + Answer';
-  }
-}
-
-function renderResults(data, elapsedMs, hasAnswer) {
-  const orig = data.original_tokens ?? 0;
-  const opt = data.optimized_tokens ?? 0;
-  const red = data.reduction_percentage ?? 0;
-  const trace = data.trace || {};
-  const st = trace.stage_tokens || {};
-  const sl = trace.stage_latency_ms || {};
-  const costComp = data.cost_comparison;
-
-  // Top Telemetry Bar
-  document.getElementById('res-before').textContent = orig.toLocaleString();
-  document.getElementById('res-after').textContent = opt.toLocaleString();
-  document.getElementById('res-saved').textContent = `${red}%`;
-  document.getElementById('res-route').textContent = data.route || 'FULL';
-  document.getElementById('res-latency').textContent = `${sl.total ? sl.total.toFixed(0) : elapsedMs}ms`;
-
-  // Output Box & Badge
-  document.getElementById('output-context').value = data.optimized_context || "";
-  document.getElementById('output-token-badge').textContent = `${opt.toLocaleString()} tokens`;
-
-  // 4 Metric Cards
-  document.getElementById('card-before').textContent = orig > 1000 ? `${(orig/1000).toFixed(1)}K` : orig;
-  document.getElementById('card-after').textContent = opt > 1000 ? `${(opt/1000).toFixed(1)}K` : opt;
-  document.getElementById('card-reduction-badge').textContent = `-${red}%`;
-
-  const savedTokens = Math.max(0, orig - opt);
-  const costSavedDollars = costComp ? `$${(costComp.baseline_cost - costComp.total_optimized_cost).toFixed(3)}` : `$${((savedTokens / 1000000) * 2.50).toFixed(3)}`;
-  document.getElementById('card-savings-val').textContent = costSavedDollars;
-
-  document.getElementById('card-quality-val').textContent = data.quality_score != null ? `${Math.round(data.quality_score * 100)}%` : "—";
-  document.getElementById('card-latency-val').textContent = `${sl.total ? sl.total.toFixed(0) : elapsedMs}ms`;
-
-  // Waterfall Chart
-  if (st.original !== undefined) {
-    const maxVal = Math.max(1, st.original);
-    document.getElementById('wf-orig').textContent = `${st.original.toLocaleString()} tokens (100%)`;
-    document.getElementById('wf-rel').textContent = `${st.after_relevance.toLocaleString()} tokens (-${Math.round(((st.original - st.after_relevance)/maxVal)*100)}%)`;
-    document.getElementById('wf-dedup').textContent = `${st.after_dedup.toLocaleString()} tokens (-${Math.round(((st.original - st.after_dedup)/maxVal)*100)}%)`;
-    document.getElementById('wf-comp').textContent = `${st.after_compression.toLocaleString()} tokens (-${red}%)`;
-
-    document.getElementById('wf-bar-orig').style.width = '100%';
-    document.getElementById('wf-bar-rel').style.width = `${Math.max(4, (st.after_relevance / maxVal) * 100)}%`;
-    document.getElementById('wf-bar-dedup').style.width = `${Math.max(4, (st.after_dedup / maxVal) * 100)}%`;
-    document.getElementById('wf-bar-comp').style.width = `${Math.max(4, (st.after_compression / maxVal) * 100)}%`;
-  }
-
-  // Chunks Inspector Detail
-  if (data.chunks_detail && data.chunks_detail.length > 0) {
-    renderChunksDetail(data.chunks_detail);
-  }
-
-  // LLM Answer Display
-  const ansSec = document.getElementById('llm-answer-section');
-  const ansBox = document.getElementById('output-answer-box');
-  const dotBadge = document.getElementById('answer-dot-badge');
-
-  if (hasAnswer && data.answer) {
-    if (ansBox) ansBox.textContent = data.answer;
-    if (dotBadge) dotBadge.classList.remove('hidden');
-    switchRightTab('answer');
-
-    if (ansSec) {
-      ansSec.classList.remove('hidden');
-      if (document.getElementById('ans-content')) document.getElementById('ans-content').textContent = data.answer;
-      if (document.getElementById('ans-latency')) document.getElementById('ans-latency').textContent = `${data.llm_latency_ms || 120}ms`;
-      if (document.getElementById('ans-quality')) document.getElementById('ans-quality').textContent = data.quality_score != null ? `${Math.round(data.quality_score * 100)}%` : "—";
-
-      if (costComp) {
-        if (document.getElementById('cost-base')) document.getElementById('cost-base').textContent = `$${costComp.baseline_cost.toFixed(4)}`;
-        if (document.getElementById('cost-opt')) document.getElementById('cost-opt').textContent = `$${costComp.optimizer_cost.toFixed(4)}`;
-        if (document.getElementById('cost-tot')) document.getElementById('cost-tot').textContent = `$${costComp.total_optimized_cost.toFixed(4)}`;
-        if (document.getElementById('cost-pct')) document.getElementById('cost-pct').textContent = `${costComp.savings_percentage.toFixed(1)}%`;
-      }
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 overflow-y-auto p-6 space-y-6">
       
-      setTimeout(() => {
-        ansSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
-    }
-  } else {
-    if (ansSec) ansSec.classList.add('hidden');
-    if (dotBadge) dotBadge.classList.add('hidden');
-    switchRightTab('context');
-  }
+      <!-- Page Title & Preset Toolbar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-[#1A1D23] tracking-tight">Optimization Engine</h1>
+          <p class="text-xs text-[#6B7280] mt-0.5">High-performance LLM context compression, routing & coherence assembly</p>
+        </div>
 
-  // Add Session History Entry
-  addHistoryEntry(data.query || "Context query", orig, opt, red, data.route || "FULL");
-}
+        <!-- Benchmark Presets Bar -->
+        <div class="flex items-center space-x-2 bg-white p-1.5 rounded-lg border border-[#E5E7EA] text-xs shadow-sm">
+          <span class="text-[#6B7280] font-medium px-2">Presets:</span>
+          <button onclick="loadPreset('support')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Support Ticket</button>
+          <button onclick="loadPreset('spec')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">API Spec</button>
+          <button onclick="loadPreset('adversarial')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Adversarial</button>
+          <button onclick="loadPreset('logs')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Logs</button>
+          <button onclick="loadPreset('skip')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Skip Route</button>
+        </div>
+      </div>
 
-function renderChunksDetail(chunks) {
-  const allList = document.getElementById('chunks-all-list');
-  const survList = document.getElementById('chunks-surviving-list');
-  allList.innerHTML = '';
-  survList.innerHTML = '';
+      <!-- ========================================================================= -->
+      <!-- THE TWO MAIN SIDE-BY-SIDE WINDOWS (CONTEXT INPUT vs OPTIMIZED CONTEXT)    -->
+      <!-- ========================================================================= -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-  chunks.forEach(chk => {
-    const div = document.createElement('div');
-    div.className = 'p-2 rounded border border-gray-800 bg-gray-900 text-[11px]';
+        <!-- WINDOW 1 (LEFT): CONTEXT INPUT & ACTION CONTROLS -->
+        <div class="v2-card p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-4">
+            <!-- Window 1 Header -->
+            <div class="flex items-center justify-between border-b border-[#E5E7EA] pb-3">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="sliders" class="w-4 h-4 text-[#0E9F6E]"></i>
+                <h2 class="font-bold text-sm text-[#1A1D23]">CONTEXT INPUT</h2>
+              </div>
+              <div class="flex items-center space-x-3 text-xs text-[#6B7280]">
+                <span id="liveCharCount" class="font-mono">0 chars</span>
+                <span>•</span>
+                <span id="liveTokenEstimate" class="font-mono font-medium text-[#0E9F6E] px-2 py-0.5 rounded bg-[#E7F8F1]">~0 tokens</span>
+                <button onclick="clearContextInput()" class="text-[#6B7280] hover:text-red-600 font-medium ml-1">Clear</button>
+              </div>
+            </div>
 
-    if (chk.action_taken === 'filtered_irrelevant') {
-      div.innerHTML = `<span class="text-red-400 font-bold">[REMOVED IRRELEVANT]</span> ${escapeHtml(chk.text.slice(0, 100))}...`;
-    } else if (chk.action_taken === 'merged_duplicate') {
-      div.innerHTML = `<span class="text-amber-400 font-bold">[MERGED DUP]</span> ${escapeHtml(chk.text.slice(0, 100))}...`;
-    } else if (chk.is_critical) {
-      div.innerHTML = `<span class="text-emerald-400 font-bold">🛡️ [PINNED CRITICAL]</span> ${escapeHtml(chk.text)}`;
-    } else {
-      div.innerHTML = `<span class="text-blue-400 font-bold">[KEPT]</span> ${escapeHtml(chk.text.slice(0, 100))}...`;
-    }
-    allList.appendChild(div);
+            <!-- Raw Context Payload Textarea -->
+            <div class="space-y-1.5">
+              <label for="contextInput" class="eyebrow-label">RAW CONTEXT PAYLOAD</label>
+              <textarea
+                id="contextInput"
+                rows="8"
+                class="w-full p-3 text-xs font-mono bg-[#F9FAFB] border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] focus:bg-white text-[#1A1D23] transition resize-y"
+                placeholder="Paste your raw context, logs, instructions or system prompt documents here..."
+              ></textarea>
+            </div>
 
-    if (chk.action_taken !== 'filtered_irrelevant' && chk.action_taken !== 'merged_duplicate') {
-      const sDiv = document.createElement('div');
-      sDiv.className = 'p-2 rounded border text-[11px] ';
-      if (chk.is_critical) {
-        sDiv.className += 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 font-bold';
-        sDiv.innerHTML = `✓ <strong>[PINNED GUARANTEE]</strong> ${escapeHtml(chk.text)}`;
-      } else {
-        sDiv.className += 'bg-gray-900 border-gray-800 text-gray-200';
-        sDiv.innerHTML = `✓ <strong>[SURVIVING]</strong> ${escapeHtml(chk.text.slice(0, 120))}...`;
+            <!-- Target Query Input -->
+            <div class="space-y-1.5">
+              <label for="queryInput" class="eyebrow-label">TARGET QUERY / USER INSTRUCTION</label>
+              <input
+                id="queryInput"
+                type="text"
+                class="w-full px-3 py-2 text-xs font-sans bg-[#F9FAFB] border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] focus:bg-white text-[#1A1D23] transition"
+                placeholder="Enter query for context relevance filtering..."
+              />
+            </div>
+
+            <!-- Budget, Model Select & Debug Toggle Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div>
+                <label for="tokenBudgetInput" class="text-[11px] font-medium text-[#6B7280] block mb-1">Max Target Tokens</label>
+                <input
+                  id="tokenBudgetInput"
+                  type="number"
+                  value="8000"
+                  min="50"
+                  max="100000"
+                  step="50"
+                  class="w-full px-2.5 py-1.5 text-xs font-mono font-semibold bg-[#F9FAFB] border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] text-[#1A1D23]"
+                />
+              </div>
+
+              <div>
+                <label for="modelSelect" class="text-[11px] font-medium text-[#6B7280] block mb-1">LLM Model</label>
+                <select
+                  id="modelSelect"
+                  class="w-full px-2.5 py-1.5 text-xs font-medium bg-white border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] text-[#1A1D23] cursor-pointer"
+                >
+                  <option value="reka-core" selected>Model: Reka Core</option>
+                  <option value="reka-flash">Model: Reka Flash</option>
+                  <option value="reka-edge">Model: Reka Edge</option>
+                </select>
+              </div>
+
+              <div class="flex items-center pt-4">
+                <input type="checkbox" id="simulateFailureToggle" class="rounded border-[#E5E7EA] text-[#0E9F6E] focus:ring-[#0E9F6E]">
+                <label for="simulateFailureToggle" class="text-[11px] text-[#6B7280] ml-1.5 cursor-pointer">Simulate T2 Fail</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar (Inline at bottom of Left Window) -->
+          <div class="grid grid-cols-3 gap-2 pt-3 border-t border-[#E5E7EA]">
+            <button id="btnAnalyze" onclick="executeAnalyze()" class="btn-secondary-v2 py-2 text-xs flex items-center justify-center space-x-1.5">
+              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-[#6B7280]"></i>
+              <span>Analyze</span>
+            </button>
+
+            <button id="btnOptimize" onclick="executeOptimize()" class="btn-primary-v2 py-2 text-xs flex items-center justify-center space-x-1.5 shadow-sm">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+              <span>Optimize</span>
+            </button>
+
+            <button id="btnOptimizeAndAnswer" onclick="executeOptimizeAndAnswer()" class="btn-secondary-v2 py-2 text-xs flex items-center justify-center space-x-1.5">
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-[#6B7280]"></i>
+              <span>Opt + Answer</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- WINDOW 2 (RIGHT): OPTIMIZED CONTEXT PAYLOAD / RESULT VIEW -->
+        <div class="v2-card p-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-4">
+            <!-- Window 2 Header with Output Tabs & Copy Button -->
+            <div class="flex items-center justify-between border-b border-[#E5E7EA] pb-3">
+              <div class="flex items-center space-x-2">
+                <button id="outTabContext" onclick="switchOutputTab('context')" class="px-3 py-1 rounded-md text-xs font-semibold bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/30 flex items-center space-x-1.5">
+                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                  <span>Optimized Context</span>
+                </button>
+                <button id="outTabAnswer" onclick="switchOutputTab('answer')" class="px-3 py-1 rounded-md text-xs font-medium text-[#6B7280] hover:text-[#1A1D23] flex items-center space-x-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                  <span>LLM Answer</span>
+                </button>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <span id="outputTokenBadge" class="px-2 py-0.5 rounded bg-[#E7F8F1] text-[#0E9F6E] font-mono text-xs font-semibold">0 tokens</span>
+                <button onclick="copyOptimizedContext()" class="btn-secondary-v2 px-2.5 py-1 text-xs">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span>Copy</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Output Text Display Container -->
+            <div class="relative">
+              <span class="eyebrow-label block mb-1.5" id="outputViewLabel">OPTIMIZED CONTEXT PAYLOAD (COMPRESSED BY ENGINE)</span>
+              
+              <!-- Tab 1: Optimized Context View -->
+              <pre id="optimizedContextView" class="w-full h-[270px] p-3.5 text-xs font-mono bg-[#F9FAFB] border border-[#E5E7EA] rounded-md text-[#1A1D23] whitespace-pre-wrap overflow-y-auto">Optimized context returned from backend API will appear here after clicking Optimize...</pre>
+
+              <!-- Tab 2: LLM Answer View -->
+              <div id="llmAnswerView" class="hidden w-full h-[270px] p-3.5 text-xs font-sans bg-[#F9FAFB] border border-[#E5E7EA] rounded-md text-[#1A1D23] leading-relaxed overflow-y-auto space-y-2">
+                <p class="text-[#6B7280] italic">No answer generated yet. Click "Opt + Answer" to run optimization and downstream LLM inference.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer Summary Bar Inside Window 2 -->
+          <div class="p-2.5 rounded-md bg-[#F9FAFB] border border-[#E5E7EA] text-xs flex flex-wrap items-center justify-between gap-2 font-mono">
+            <div>
+              <span class="text-[#6B7280]">Tokens: </span>
+              <span id="win2TokensSummary" class="font-semibold text-[#1A1D23]">-- &rightarrow; --</span>
+            </div>
+            <div>
+              <span class="text-[#6B7280]">Saved: </span>
+              <span id="win2SavedSummary" class="font-semibold text-[#0E9F6E]">--%</span>
+            </div>
+            <div>
+              <span class="text-[#6B7280]">Route: </span>
+              <span id="win2RouteSummary" class="font-bold text-[#1A1D23]">--</span>
+            </div>
+            <div>
+              <span class="text-[#6B7280]">Latency: </span>
+              <span id="win2LatencySummary" class="font-semibold text-[#1A1D23]">-- ms</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- THREE METRIC & SAFETY CARDS (TREND CHART + FINANCIAL + SAFETY)            -->
+      <!-- ========================================================================= -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- CARD 1: TOKEN EFFICIENCY TREND CHART -->
+        <div class="v2-card p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-sm text-[#1A1D23]">Token Efficiency Trend</h3>
+            <div class="flex items-center space-x-3 text-[11px] font-medium">
+              <span class="text-[#DC4C4C]">● Before</span>
+              <span class="text-[#0E9F6E]">● After</span>
+            </div>
+          </div>
+
+          <!-- Chart Area -->
+          <div class="h-44 relative">
+            <canvas id="efficiencyTrendChart"></canvas>
+          </div>
+          <p id="chartEmptyCaption" class="text-center text-xs text-[#6B7280] italic">
+            No runs yet — baseline ticks active.
+          </p>
+        </div>
+
+        <!-- CARD 2: FINANCIAL SUMMARY -->
+        <div class="v2-card p-5 space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="font-semibold text-sm text-[#1A1D23] mb-3">Financial Summary</h3>
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between items-center text-[#6B7280]">
+                <span>Expected saving</span>
+                <span id="finExpectedSaving" class="font-mono font-semibold text-[#1A1D23]">$0.000</span>
+              </div>
+              <div class="flex justify-between items-center text-[#6B7280]">
+                <span>Optimizer cost</span>
+                <span id="finOptimizerCost" class="font-mono text-[#6B7280]">$0.000</span>
+              </div>
+              <div class="border-t border-[#E5E7EA] pt-2 flex justify-between items-center font-semibold text-[#1A1D23]">
+                <span>Margin</span>
+                <span id="finMargin" class="font-mono text-[#0E9F6E]">$0.000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Banner -->
+          <div id="finStatusBanner" class="p-2.5 rounded-md text-center font-bold text-xs bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/20">
+            ✓ WORTH OPTIMIZING
+          </div>
+        </div>
+
+        <!-- CARD 3: COMPRESSION SAFETY -->
+        <div class="v2-card p-5 space-y-4 flex flex-col justify-between">
+          <div>
+            <h3 class="font-semibold text-sm text-[#1A1D23] mb-3">Compression Safety</h3>
+            <div class="space-y-1.5 text-xs text-[#6B7280]">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
+                <span>System prompts & constraints preserved</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
+                <span>Numerical figures & SLA terms intact</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
+                <span>Negation guardrails & rules protected</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
+                <span>Error codes & keys preserved</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Banner -->
+          <div class="p-2.5 rounded-md text-center font-bold text-xs bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/20">
+            🔒 SAFE TO SEND
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- DEEP PIPELINE DIAGNOSTICS & CHUNK INSPECTOR SURFACE                      -->
+      <!-- ========================================================================= -->
+      <div class="v2-card p-5 space-y-5">
+        <div class="flex items-center justify-between border-b border-[#E5E7EA] pb-3">
+          <div class="flex items-center space-x-3">
+            <i data-lucide="sliders" class="w-5 h-5 text-[#0E9F6E]"></i>
+            <h2 class="font-bold text-base text-[#1A1D23]">Deep Pipeline Diagnostics & Coherence Audit</h2>
+          </div>
+          
+          <div class="flex items-center space-x-3">
+            <span id="routeBadge" class="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-[#E5E7EA] text-[#6B7280]">
+              ROUTE: READY
+            </span>
+            <span id="qualityScoreBadge" class="hidden px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/30">
+              100% Faithfulness
+            </span>
+          </div>
+        </div>
+
+        <!-- Diagnostic Tabs Header -->
+        <div class="flex items-center space-x-4 border-b border-[#E5E7EA] text-xs font-medium">
+          <button id="diagTabBtnOverview" onclick="switchDiagTab('overview')" class="pb-2 text-[#0E9F6E] border-b-2 border-[#0E9F6E] font-semibold">
+            Latency & Stage Waterfall
+          </button>
+          <button id="diagTabBtnChunks" onclick="switchDiagTab('chunks')" class="pb-2 text-[#6B7280] hover:text-[#1A1D23]">
+            Chunk Metadata Audit Table
+          </button>
+        </div>
+
+        <!-- TAB 1: Latency & Token Waterfall -->
+        <div id="diagViewOverview" class="space-y-4">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
+              <span class="text-[#6B7280]">Original Tokens</span>
+              <div id="metricOriginalTokens" class="text-lg font-bold font-mono text-[#1A1D23]">0</div>
+            </div>
+            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
+              <span class="text-[#6B7280]">Optimized Tokens</span>
+              <div id="metricOptimizedTokens" class="text-lg font-bold font-mono text-[#0E9F6E]">0</div>
+            </div>
+            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
+              <span class="text-[#6B7280]">Reduction</span>
+              <div id="metricReductionPct" class="text-lg font-bold font-mono text-[#0E9F6E]">0.0%</div>
+            </div>
+            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
+              <span class="text-[#6B7280]">Pipeline Latency</span>
+              <div id="metricTotalLatency" class="text-lg font-bold font-mono text-[#1A1D23]">0.0 ms</div>
+            </div>
+          </div>
+
+          <!-- Stage-by-Stage Latency Breakdown -->
+          <div class="p-4 rounded-md bg-[#F9FAFB] border border-[#E5E7EA] space-y-3">
+            <h4 class="font-semibold text-xs text-[#1A1D23]">Stage-by-Stage Latency Breakdown (ms)</h4>
+            <div class="space-y-2 text-xs">
+              <div>
+                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
+                  <span>Tier 0: Chunking & Tagging</span>
+                  <span id="latChunking" class="font-mono">0.0 ms</span>
+                </div>
+                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
+                  <div id="barLatChunking" class="bg-[#3B82F6] h-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
+                  <span>Tier 1: Embedding Relevance Filtering</span>
+                  <span id="latRelevance" class="font-mono">0.0 ms</span>
+                </div>
+                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
+                  <div id="barLatRelevance" class="bg-[#0284C7] h-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
+                  <span>Tier 1: Semantic Deduplication</span>
+                  <span id="latDedup" class="font-mono">0.0 ms</span>
+                </div>
+                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
+                  <div id="barLatDedup" class="bg-[#D97706] h-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
+                  <span>Tier 2: Coherence Compression</span>
+                  <span id="latCompression" class="font-mono">0.0 ms</span>
+                </div>
+                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
+                  <div id="barLatCompression" class="bg-[#9333EA] h-full" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
+                  <span>Tier 3: Coherence Assembly</span>
+                  <span id="latAssembly" class="font-mono">0.0 ms</span>
+                </div>
+                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
+                  <div id="barLatAssembly" class="bg-[#0E9F6E] h-full" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Chunk Metadata Audit Table -->
+        <div id="diagViewChunks" class="hidden overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="bg-[#F9FAFB] border-b border-[#E5E7EA] text-[#6B7280] font-semibold">
+                <th class="py-2.5 px-3">Chunk ID</th>
+                <th class="py-2.5 px-3">Pos</th>
+                <th class="py-2.5 px-3">Tag</th>
+                <th class="py-2.5 px-3">Tokens</th>
+                <th class="py-2.5 px-3">Relevance</th>
+                <th class="py-2.5 px-3">Action</th>
+                <th class="py-2.5 px-4">Content Preview</th>
+              </tr>
+            </thead>
+            <tbody id="chunksTableBody">
+              <tr>
+                <td colspan="7" class="py-6 text-center text-[#6B7280]">
+                  No chunk details available. Run an optimization pipeline to inspect chunks.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 bg-[#1A1D23] text-white px-4 py-3 rounded-lg shadow-xl text-xs font-medium flex items-center space-x-2.5 opacity-0 translate-y-12 pointer-events-none transition-all duration-300">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-[#0E9F6E]"></i>
+    <span id="toastMessage">Notification message</span>
+  </div>
+
+  <!-- Application Frontend Controller JS -->
+  <script src="/static/app.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        lucide.createIcons();
       }
-      survList.appendChild(sDiv);
-    }
-  });
-}
-
-function addHistoryEntry(query, before, after, reduction, route) {
-  runCounter++;
-  const tbody = document.getElementById('history-tbody');
-  
-  if (runCounter === 1) tbody.innerHTML = '';
-
-  const tr = document.createElement('tr');
-  const now = new Date().toLocaleTimeString();
-  tr.innerHTML = `
-    <td class="p-2.5 text-brand-400 font-bold">#CF-${runCounter}</td>
-    <td class="p-2.5 text-gray-400">${now}</td>
-    <td class="p-2.5 text-gray-200 truncate max-w-xs">${escapeHtml(query)}</td>
-    <td class="p-2.5">${before.toLocaleString()}</td>
-    <td class="p-2.5 font-bold text-emerald-400">${after.toLocaleString()}</td>
-    <td class="p-2.5 text-emerald-400 font-bold">-${reduction}%</td>
-    <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">${route}</span></td>
-  `;
-  tbody.prepend(tr);
-}
-
-function switchTab(tabId) {
-  activeTab = tabId;
-  const tabs = ['waterfall', 'chunks', 'history'];
-  tabs.forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    const btn = document.getElementById(`tab-btn-${t}`);
-    if (t === tabId) {
-      el?.classList.remove('hidden');
-      if (btn) btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-bold bg-brand-600 text-white shadow transition flex items-center gap-1.5';
-    } else {
-      el?.classList.add('hidden');
-      if (btn) btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition flex items-center gap-1.5';
-    }
-  });
-}
-
-
-function switchRightTab(tab) {
-  const vContext = document.getElementById('view-output-context');
-  const vAnswer = document.getElementById('view-output-answer');
-  const btnContext = document.getElementById('right-tab-context');
-  const btnAnswer = document.getElementById('right-tab-answer');
-
-  if (tab === 'answer') {
-    if (vContext) vContext.classList.add('hidden');
-    if (vAnswer) vAnswer.classList.remove('hidden');
-    if (btnAnswer) btnAnswer.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white transition flex items-center gap-1';
-    if (btnContext) btnContext.className = 'px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition flex items-center gap-1';
-  } else {
-    if (vContext) vContext.classList.remove('hidden');
-    if (vAnswer) vAnswer.classList.add('hidden');
-    if (btnContext) btnContext.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-brand-600 text-white transition flex items-center gap-1';
-    if (btnAnswer) btnAnswer.className = 'px-3 py-1 rounded-lg text-xs font-medium text-gray-400 hover:bg-gray-800 transition flex items-center gap-1';
-  }
-}
-
-function copyOutput() {
-  const text = document.getElementById('output-context')?.value;
-  if (!text) {
-    showToast('No output context to copy.');
-    return;
-  }
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Copied optimized context to clipboard!');
-  }).catch(() => {
-    showToast('Copied to clipboard.');
-  });
-}
-
-function showToast(msg) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'bg-gray-900 border border-gray-700 text-gray-100 text-xs py-2.5 px-4 rounded-xl shadow-2xl flex items-center gap-2 pointer-events-auto font-medium';
-  toast.innerHTML = `<span class="material-symbols-outlined text-brand-500 text-base">info</span><span>${escapeHtml(msg)}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-</script>
+    });
+  </script>
 </body>
 </html>
