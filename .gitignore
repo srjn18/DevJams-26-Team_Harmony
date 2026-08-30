@@ -1,32 +1,12 @@
-# Environment / secrets — NEVER commit .env
-.env
-*.env
-!.env.example
-
-# Python
 __pycache__/
-*.py[cod]
+*.pyc
 *.pyo
 *.pyd
-.Python
-*.egg
-*.egg-info/
-dist/
-build/
-.eggs/
-venv/
-.venv/
-env/
-pip-wheel-metadata/
-
-# Testing
 .pytest_cache/
 .coverage
 htmlcov/
-*.log
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
+.env
+venv/
+.venv/
+env/
+.DS_Store
