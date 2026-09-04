@@ -1,37 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Engine — Context Optimization Dashboard</title>
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Tailwind CSS CDN -->
+  <title>ContextFlow — Context Optimization Engine</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
           colors: {
-            app: '#F7F8FA',
-            sidebar: '#FFFFFF',
-            card: '#FFFFFF',
-            borderSubtle: '#E5E7EA',
-            accent: {
-              DEFAULT: '#0E9F6E',
-              hover: '#057A55',
-              soft: '#E7F8F1',
+            brand: {
+              50: '#ecfdf5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
             },
-            textMain: '#1A1D23',
-            textMuted: '#6B7280',
+            cyan: {
+              400: '#22d3ee',
+              500: '#06b6d4',
+            },
+            dark: {
+              950: '#07090e',
+              900: '#0d131f',
+              850: '#111927',
+              800: '#1a2333',
+              700: '#263349',
+            }
           }
         }
       }

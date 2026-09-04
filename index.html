@@ -1,498 +1,647 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Engine — Context Optimization Dashboard</title>
-  
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            app: '#F7F8FA',
-            sidebar: '#FFFFFF',
-            card: '#FFFFFF',
-            borderSubtle: '#E5E7EA',
-            accent: {
-              DEFAULT: '#0E9F6E',
-              hover: '#057A55',
-              soft: '#E7F8F1',
-            },
-            textMain: '#1A1D23',
-            textMuted: '#6B7280',
-          }
-        }
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>ContextFlow — Context Optimization Engine</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "tertiary-fixed-dim": "#ffb95f",
+        "tertiary": "#784b00",
+        "on-primary-fixed-variant": "#003ea8",
+        "secondary": "#006c49",
+        "secondary-container": "#6cf8bb",
+        "on-secondary-container": "#00714d",
+        "inverse-on-surface": "#eaf1ff",
+        "on-surface-variant": "#434655",
+        "on-tertiary-container": "#ffeedd",
+        "background": "#f8f9ff",
+        "surface-variant": "#d3e4fe",
+        "primary": "#004ac6",
+        "outline": "#737686",
+        "surface-container-highest": "#d3e4fe",
+        "primary-fixed-dim": "#b4c5ff",
+        "on-secondary-fixed-variant": "#005236",
+        "on-primary": "#ffffff",
+        "secondary-fixed": "#6ffbbe",
+        "outline-variant": "#c3c6d7",
+        "surface": "#ffffff",
+        "on-secondary": "#ffffff",
+        "surface-bright": "#f8f9ff",
+        "primary-fixed": "#dbe1ff",
+        "inverse-primary": "#b4c5ff",
+        "surface-tint": "#0053db",
+        "error-container": "#ffdad6",
+        "on-tertiary-fixed": "#2a1700",
+        "on-secondary-fixed": "#002113",
+        "on-error": "#ffffff",
+        "tertiary-container": "#996100",
+        "error": "#ba1a1a",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-high": "#dce9ff",
+        "surface-container": "#e5eeff",
+        "inverse-surface": "#213145",
+        "on-error-container": "#93000a",
+        "on-primary-fixed": "#00174b",
+        "on-primary-container": "#eeefff",
+        "on-surface": "#0b1c30",
+        "on-tertiary": "#ffffff",
+        "surface-container-low": "#eff4ff",
+        "on-background": "#0b1c30",
+        "on-tertiary-fixed-variant": "#653e00",
+        "primary-container": "#2563eb",
+        "tertiary-fixed": "#ffddb8",
+        "secondary-fixed-dim": "#4edea3",
+        "surface-dim": "#cbdbf5"
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem",
+        "lg": "0.75rem",
+        "xl": "1rem",
+        "full": "9999px"
+      },
+      spacing: {
+        "sidebar_width": "240px",
+        "stack_lg": "24px",
+        "stack_md": "16px",
+        "gutter": "16px",
+        "stack_sm": "8px",
+        "container_padding": "24px",
+        "card_padding": "20px"
+      },
+      fontFamily: {
+        "sans": ["Inter", "sans-serif"],
+        "geist": ["Geist", "sans-serif"],
+        "display-lg": ["Geist", "sans-serif"],
+        "headline-md": ["Geist", "sans-serif"],
+        "headline-sm": ["Geist", "sans-serif"],
+        "metric-xl": ["Geist", "sans-serif"],
+        "body-lg": ["Inter", "sans-serif"],
+        "body-md": ["Inter", "sans-serif"],
+        "label-sm": ["Inter", "sans-serif"],
+        "caption": ["Inter", "sans-serif"]
       }
     }
-  </script>
-
-  <!-- Lucide Icons & Chart.js -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="/static/styles.css">
-  <link rel="stylesheet" href="static/styles.css">
+  }
+}
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  @keyframes stagePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+  }
+  .stage-active {
+    animation: stagePulse 1s infinite ease-in-out;
+  }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f8f9ff;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c3c6d7;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #737686;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .toast-anim {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+</style>
 </head>
-<body class="bg-[#F7F8FA] text-[#1A1D23] font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-background text-on-background font-sans antialiased h-screen overflow-hidden flex">
 
-  <!-- ========================================================================= -->
-  <!-- TOP NAVIGATION BAR                                                        -->
-  <!-- ========================================================================= -->
-  <header class="bg-white border-b border-[#E5E7EA] px-4 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-sm">
-    <!-- Left: Logo & Top Nav Links -->
-    <div class="flex items-center space-x-8">
-      <div class="flex items-center space-x-2.5">
-        <div class="w-8 h-8 rounded-lg bg-[#0E9F6E] flex items-center justify-center text-white font-bold shadow-sm">
-          <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-bold text-base text-[#1A1D23] tracking-tight">AI Engine</span>
-            <span class="text-xs text-[#6B7280] font-mono">V2.4.0-stable</span>
-          </div>
+<!-- Toast Container -->
+<div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- SIDEBAR -->
+<aside class="fixed left-0 top-0 h-full w-[240px] bg-surface shadow-sm border-r border-outline-variant/30 flex flex-col z-50 select-none">
+  <div class="p-5 flex items-center gap-3 border-b border-outline-variant/20">
+    <div class="w-9 h-9 flex items-center justify-center rounded-xl bg-surface-container-low p-1.5 shadow-sm border border-outline-variant/30">
+      <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 35 25 C 20 25 10 38 10 50 C 10 62 20 75 35 75 C 48 75 58 65 68 50 C 72 44 76 35 80 30" stroke="#004AC6" stroke-width="12" stroke-linecap="round" fill="none"/>
+        <path d="M 65 75 C 80 75 90 62 90 50 C 90 38 80 25 65 25 C 52 25 42 35 32 50 C 28 56 24 65 20 70" stroke="#006C49" stroke-width="12" stroke-linecap="round" fill="none"/>
+        <path d="M 30 65 L 60 35 M 60 35 H 42 M 60 35 V 53" stroke="#004AC6" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+    </div>
+    <div>
+      <h1 class="text-headline-sm font-geist font-bold text-on-surface leading-tight tracking-tight">ContextFlow</h1>
+      <p class="text-[11px] font-medium text-secondary uppercase tracking-wider">Optimization Engine</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 py-4 flex flex-col gap-1 overflow-y-auto px-3">
+    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-3.5 py-2.5 rounded-lg transition-colors text-left font-medium text-sm">
+      <span class="material-symbols-outlined text-[20px]">dashboard</span>
+      <span>Dashboard</span>
+    </button>
+    <button onclick="switchTab('optimization')" id="nav-optimization" class="w-full flex items-center gap-3 bg-secondary-container text-on-secondary-container border-l-4 border-secondary px-3.5 py-2.5 rounded-lg transition-all font-semibold text-sm shadow-sm">
+      <span class="material-symbols-outlined text-[20px]">auto_fix_high</span>
+      <span>Optimization Engine</span>
+    </button>
+    <button onclick="switchTab('analytics')" id="nav-analytics" class="w-full flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-3.5 py-2.5 rounded-lg transition-colors text-left font-medium text-sm">
+      <span class="material-symbols-outlined text-[20px]">analytics</span>
+      <span>Analytics</span>
+    </button>
+    <button onclick="switchTab('history')" id="nav-history" class="w-full flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-3.5 py-2.5 rounded-lg transition-colors text-left font-medium text-sm">
+      <span class="material-symbols-outlined text-[20px]">history</span>
+      <span>History</span>
+    </button>
+  </nav>
+
+  <div class="p-3 border-t border-outline-variant/20 mt-auto">
+    <button onclick="switchTab('settings')" id="nav-settings" class="w-full flex items-center gap-3 text-on-surface-variant hover:bg-surface-container-low px-3.5 py-2.5 rounded-lg transition-colors text-left font-medium text-sm">
+      <span class="material-symbols-outlined text-[20px]">settings</span>
+      <span>Settings</span>
+    </button>
+    <div class="mt-3 p-3 bg-surface-container-low rounded-xl border border-outline-variant/30 text-xs">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-on-surface-variant font-medium">Engine Mode</span>
+        <span id="engine-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-secondary-fixed-dim/30 text-on-secondary-container">ACTIVE</span>
+      </div>
+      <p class="text-[11px] text-on-surface-variant/80">6-Stage Cost-Aware LLM Middleware</p>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="flex-1 flex flex-col ml-[240px] h-full overflow-hidden">
+  <header class="sticky top-0 z-40 w-full bg-surface/90 backdrop-blur-md h-16 flex items-center justify-between px-6 border-b border-outline-variant/20">
+    <div class="flex items-center gap-4 flex-1">
+      <h2 id="header-title" class="text-xl font-geist font-bold text-on-surface">Optimization Engine</h2>
+      <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container-low border border-outline-variant/30 rounded-full text-xs text-on-surface-variant">
+        <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+        <span id="api-endpoint-label">Connected: http://127.0.0.1:8000</span>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <div class="relative inline-block text-left">
+        <button onclick="togglePresetDropdown()" class="bg-surface-container-low hover:bg-surface-container text-on-surface font-medium text-xs py-2 px-3 rounded-lg border border-outline-variant/30 flex items-center gap-1.5 transition-colors">
+          <span class="material-symbols-outlined text-[16px] text-primary">auto_mode</span>
+          <span>Presets</span>
+          <span class="material-symbols-outlined text-[14px]">arrow_drop_down</span>
+        </button>
+        <div id="preset-dropdown" class="hidden absolute right-0 mt-2 w-64 rounded-xl bg-surface shadow-lg border border-outline-variant/30 z-50 py-1">
+          <div class="px-3 py-1.5 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider border-b border-outline-variant/20">Sample Context Presets</div>
+          <button onclick="loadPreset('support')" class="w-full text-left px-3 py-2 text-xs text-on-surface hover:bg-surface-container-low flex flex-col">
+            <span class="font-semibold text-primary">Enterprise Support Ticket Log</span>
+            <span class="text-[11px] text-on-surface-variant">18.4K tokens • Pinned SLA rules</span>
+          </button>
+          <button onclick="loadPreset('contract')" class="w-full text-left px-3 py-2 text-xs text-on-surface hover:bg-surface-container-low flex flex-col">
+            <span class="font-semibold text-primary">SLA & Contract Specification</span>
+            <span class="text-[11px] text-on-surface-variant">12.1K tokens • Pinned refund terms</span>
+          </button>
+          <button onclick="loadPreset('adversarial')" class="w-full text-left px-3 py-2 text-xs text-on-surface hover:bg-surface-container-low flex flex-col">
+            <span class="font-semibold text-primary">Adversarial Negations Test</span>
+            <span class="text-[11px] text-on-surface-variant">8.5K tokens • "DO NOT use MongoDB"</span>
+          </button>
         </div>
       </div>
 
-      <!-- Top Nav Item Links -->
-      <nav class="hidden md:flex items-center space-x-6">
-        <a href="#" class="text-sm font-medium text-[#1A1D23] hover:text-[#0E9F6E] transition">Dashboard</a>
-        <a href="#" class="text-sm font-medium text-[#6B7280] hover:text-[#1A1D23] transition">Optimization Engine</a>
-      </nav>
-    </div>
+      <button onclick="showToast('Notifications: System healthy. 100% SLA preserved.')" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors relative" title="Notifications">
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span>
+      </button>
 
-    <!-- Right: Utility Actions & User Profile -->
-    <div class="flex items-center space-x-4">
-      <button class="p-2 text-[#6B7280] hover:text-[#1A1D23] hover:bg-[#F3F4F6] rounded-lg transition" title="Notifications">
-        <i data-lucide="bell" class="w-4 h-4"></i>
+      <button onclick="showHelpModal()" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors" title="Documentation & Architecture">
+        <span class="material-symbols-outlined text-[20px]">help</span>
       </button>
-      <button class="p-2 text-[#6B7280] hover:text-[#1A1D23] hover:bg-[#F3F4F6] rounded-lg transition" title="Help & Specs">
-        <i data-lucide="help-circle" class="w-4 h-4"></i>
+
+      <button onclick="runOptimization()" class="bg-secondary text-on-primary text-xs py-2 px-4 rounded-lg font-semibold hover:opacity-90 transition-opacity shadow-sm flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-[16px]">bolt</span>
+        <span>Run Optimization</span>
       </button>
-      <a href="#" class="text-sm font-medium text-[#6B7280] hover:text-[#1A1D23] transition">Support</a>
-      <button class="btn-primary-v2 px-4 py-1.5 text-xs">
-        <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-        <span>Deploy</span>
-      </button>
-      <div class="w-8 h-8 rounded-full bg-[#E7F8F1] border border-[#0E9F6E]/30 flex items-center justify-center text-[#0E9F6E] font-bold text-xs">
-        AE
+
+      <div class="w-8 h-8 rounded-full bg-primary text-on-primary font-bold text-xs flex items-center justify-center border border-outline-variant/30 shadow-sm" title="Team Harmony Admin">
+        TH
       </div>
     </div>
   </header>
 
-  <!-- ========================================================================= -->
-  <!-- MAIN LAYOUT: SIDEBAR + CONTENT                                            -->
-  <!-- ========================================================================= -->
-  <div class="flex-1 flex overflow-hidden">
-
-    <!-- LEFT SIDEBAR -->
-    <aside class="w-64 bg-white border-r border-[#E5E7EA] p-4 flex flex-col justify-between shrink-0 hidden lg:flex">
-      <div class="space-y-6">
-        <!-- "+ New Project" CTA Button -->
-        <button onclick="createNewProject()" class="w-full btn-primary-v2 py-2.5 text-sm flex items-center justify-center space-x-2 rounded-lg shadow-sm">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>New Project</span>
-        </button>
-
-        <!-- Sidebar Navigation List (Streamlined & Clean) -->
-        <nav class="space-y-1">
-          <a href="#" class="sidebar-nav-item active">
-            <i data-lucide="zap" class="w-4 h-4"></i>
-            <span>Optimization Engine</span>
-          </a>
-        </nav>
-      </div>
-
-      <!-- Bottom Pinned Navigation -->
-      <div class="pt-4 border-t border-[#E5E7EA] space-y-1">
-        <a href="#" class="sidebar-nav-item text-xs">
-          <i data-lucide="book" class="w-4 h-4"></i>
-          <span>Docs</span>
-        </a>
-        <a href="#" class="sidebar-nav-item text-xs text-red-600 hover:bg-red-50">
-          <i data-lucide="log-out" class="w-4 h-4"></i>
-          <span>Logout</span>
-        </a>
-      </div>
-    </aside>
-
-    <!-- MAIN WORKSPACE -->
-    <main class="flex-1 overflow-y-auto p-6 space-y-6">
+  <!-- WORKSPACE VIEW -->
+  <main id="view-optimization" class="flex-1 overflow-y-auto p-6 bg-background">
+    <div class="max-w-7xl mx-auto space-y-6">
       
-      <!-- Page Title & Preset Toolbar -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-[#1A1D23] tracking-tight">Optimization Engine</h1>
-          <p class="text-xs text-[#6B7280] mt-0.5">High-performance LLM context compression, routing & coherence assembly</p>
-        </div>
-
-        <!-- Benchmark Presets Bar -->
-        <div class="flex items-center space-x-2 bg-white p-1.5 rounded-lg border border-[#E5E7EA] text-xs shadow-sm">
-          <span class="text-[#6B7280] font-medium px-2">Presets:</span>
-          <button onclick="loadPreset('support')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Support Ticket</button>
-          <button onclick="loadPreset('spec')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">API Spec</button>
-          <button onclick="loadPreset('adversarial')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Adversarial</button>
-          <button onclick="loadPreset('logs')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Logs</button>
-          <button onclick="loadPreset('skip')" class="px-2.5 py-1 rounded bg-[#F3F4F6] text-[#1A1D23] hover:bg-[#E5E7EA] font-medium transition">Skip Route</button>
-        </div>
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- THE TWO MAIN SIDE-BY-SIDE WINDOWS (CONTEXT INPUT vs OPTIMIZED CONTEXT)    -->
-      <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        <!-- WINDOW 1 (LEFT): CONTEXT INPUT & ACTION CONTROLS -->
-        <div class="v2-card p-5 flex flex-col justify-between space-y-4">
-          <div class="space-y-4">
-            <!-- Window 1 Header -->
-            <div class="flex items-center justify-between border-b border-[#E5E7EA] pb-3">
-              <div class="flex items-center space-x-2">
-                <i data-lucide="sliders" class="w-4 h-4 text-[#0E9F6E]"></i>
-                <h2 class="font-bold text-sm text-[#1A1D23]">CONTEXT INPUT</h2>
-              </div>
-              <div class="flex items-center space-x-3 text-xs text-[#6B7280]">
-                <span id="liveCharCount" class="font-mono">0 chars</span>
-                <span>•</span>
-                <span id="liveTokenEstimate" class="font-mono font-medium text-[#0E9F6E] px-2 py-0.5 rounded bg-[#E7F8F1]">~0 tokens</span>
-                <button onclick="clearContextInput()" class="text-[#6B7280] hover:text-red-600 font-medium ml-1">Clear</button>
-              </div>
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-8 bg-surface rounded-xl shadow-sm p-5 border border-outline-variant/20">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-2">
+              <h3 class="text-lg font-geist font-bold text-on-surface">Context Input</h3>
+              <span id="token-counter-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-surface-container text-primary">18,420 tokens</span>
             </div>
-
-            <!-- Raw Context Payload Textarea -->
-            <div class="space-y-1.5">
-              <label for="contextInput" class="eyebrow-label">RAW CONTEXT PAYLOAD</label>
-              <textarea
-                id="contextInput"
-                rows="8"
-                class="w-full p-3 text-xs font-mono bg-[#F9FAFB] border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] focus:bg-white text-[#1A1D23] transition resize-y"
-                placeholder="Paste your raw context, logs, instructions or system prompt documents here..."
-              ></textarea>
+            <div class="flex items-center gap-3">
+              <button onclick="loadPreset('support')" class="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">history_edu</span> Sample Preset
+              </button>
+              <button onclick="clearInput()" class="text-xs text-outline font-medium hover:text-error transition-colors">Clear</button>
             </div>
-
-            <!-- Target Query Input -->
-            <div class="space-y-1.5">
-              <label for="queryInput" class="eyebrow-label">TARGET QUERY / USER INSTRUCTION</label>
-              <input
-                id="queryInput"
-                type="text"
-                class="w-full px-3 py-2 text-xs font-sans bg-[#F9FAFB] border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] focus:bg-white text-[#1A1D23] transition"
-                placeholder="Enter query for context relevance filtering..."
-              />
-            </div>
-
-            <!-- Budget, Model Select & Debug Toggle Bar -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div>
-                <label for="tokenBudgetInput" class="text-[11px] font-medium text-[#6B7280] block mb-1">Max Target Tokens</label>
-                <input
-                  id="tokenBudgetInput"
-                  type="number"
-                  value="8000"
-                  min="50"
-                  max="100000"
-                  step="50"
-                  class="w-full px-2.5 py-1.5 text-xs font-mono font-semibold bg-[#F9FAFB] border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] text-[#1A1D23]"
-                />
-              </div>
-
-              <div>
-                <label for="modelSelect" class="text-[11px] font-medium text-[#6B7280] block mb-1">LLM Model</label>
-                <select
-                  id="modelSelect"
-                  class="w-full px-2.5 py-1.5 text-xs font-medium bg-white border border-[#E5E7EA] rounded-md focus:outline-none focus:border-[#0E9F6E] text-[#1A1D23] cursor-pointer"
-                >
-                  <option value="reka-core" selected>Model: Reka Core</option>
-                  <option value="reka-flash">Model: Reka Flash</option>
-                  <option value="reka-edge">Model: Reka Edge</option>
-                </select>
-              </div>
-
-              <div class="flex items-center pt-4">
-                <input type="checkbox" id="simulateFailureToggle" class="rounded border-[#E5E7EA] text-[#0E9F6E] focus:ring-[#0E9F6E]">
-                <label for="simulateFailureToggle" class="text-[11px] text-[#6B7280] ml-1.5 cursor-pointer">Simulate T2 Fail</label>
-              </div>
-            </div>
-          </div>
-
-          <!-- Action Buttons Bar (Inline at bottom of Left Window) -->
-          <div class="grid grid-cols-3 gap-2 pt-3 border-t border-[#E5E7EA]">
-            <button id="btnAnalyze" onclick="executeAnalyze()" class="btn-secondary-v2 py-2 text-xs flex items-center justify-center space-x-1.5">
-              <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-[#6B7280]"></i>
-              <span>Analyze</span>
-            </button>
-
-            <button id="btnOptimize" onclick="executeOptimize()" class="btn-primary-v2 py-2 text-xs flex items-center justify-center space-x-1.5 shadow-sm">
-              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-              <span>Optimize</span>
-            </button>
-
-            <button id="btnOptimizeAndAnswer" onclick="executeOptimizeAndAnswer()" class="btn-secondary-v2 py-2 text-xs flex items-center justify-center space-x-1.5">
-              <i data-lucide="lock" class="w-3.5 h-3.5 text-[#6B7280]"></i>
-              <span>Opt + Answer</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- WINDOW 2 (RIGHT): OPTIMIZED CONTEXT PAYLOAD / RESULT VIEW -->
-        <div class="v2-card p-5 flex flex-col justify-between space-y-4">
-          <div class="space-y-4">
-            <!-- Window 2 Header with Output Tabs & Copy Button -->
-            <div class="flex items-center justify-between border-b border-[#E5E7EA] pb-3">
-              <div class="flex items-center space-x-2">
-                <button id="outTabContext" onclick="switchOutputTab('context')" class="px-3 py-1 rounded-md text-xs font-semibold bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/30 flex items-center space-x-1.5">
-                  <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-                  <span>Optimized Context</span>
-                </button>
-                <button id="outTabAnswer" onclick="switchOutputTab('answer')" class="px-3 py-1 rounded-md text-xs font-medium text-[#6B7280] hover:text-[#1A1D23] flex items-center space-x-1.5">
-                  <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-                  <span>LLM Answer</span>
-                </button>
-              </div>
-
-              <div class="flex items-center space-x-2">
-                <span id="outputTokenBadge" class="px-2 py-0.5 rounded bg-[#E7F8F1] text-[#0E9F6E] font-mono text-xs font-semibold">0 tokens</span>
-                <button onclick="copyOptimizedContext()" class="btn-secondary-v2 px-2.5 py-1 text-xs">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  <span>Copy</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Output Text Display Container -->
-            <div class="relative">
-              <span class="eyebrow-label block mb-1.5" id="outputViewLabel">OPTIMIZED CONTEXT PAYLOAD (COMPRESSED BY ENGINE)</span>
-              
-              <!-- Tab 1: Optimized Context View -->
-              <pre id="optimizedContextView" class="w-full h-[270px] p-3.5 text-xs font-mono bg-[#F9FAFB] border border-[#E5E7EA] rounded-md text-[#1A1D23] whitespace-pre-wrap overflow-y-auto">Optimized context returned from backend API will appear here after clicking Optimize...</pre>
-
-              <!-- Tab 2: LLM Answer View -->
-              <div id="llmAnswerView" class="hidden w-full h-[270px] p-3.5 text-xs font-sans bg-[#F9FAFB] border border-[#E5E7EA] rounded-md text-[#1A1D23] leading-relaxed overflow-y-auto space-y-2">
-                <p class="text-[#6B7280] italic">No answer generated yet. Click "Opt + Answer" to run optimization and downstream LLM inference.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Footer Summary Bar Inside Window 2 -->
-          <div class="p-2.5 rounded-md bg-[#F9FAFB] border border-[#E5E7EA] text-xs flex flex-wrap items-center justify-between gap-2 font-mono">
-            <div>
-              <span class="text-[#6B7280]">Tokens: </span>
-              <span id="win2TokensSummary" class="font-semibold text-[#1A1D23]">-- &rightarrow; --</span>
-            </div>
-            <div>
-              <span class="text-[#6B7280]">Saved: </span>
-              <span id="win2SavedSummary" class="font-semibold text-[#0E9F6E]">--%</span>
-            </div>
-            <div>
-              <span class="text-[#6B7280]">Route: </span>
-              <span id="win2RouteSummary" class="font-bold text-[#1A1D23]">--</span>
-            </div>
-            <div>
-              <span class="text-[#6B7280]">Latency: </span>
-              <span id="win2LatencySummary" class="font-semibold text-[#1A1D23]">-- ms</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- THREE METRIC & SAFETY CARDS (TREND CHART + FINANCIAL + SAFETY)            -->
-      <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- CARD 1: TOKEN EFFICIENCY TREND CHART -->
-        <div class="v2-card p-5 space-y-3">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-sm text-[#1A1D23]">Token Efficiency Trend</h3>
-            <div class="flex items-center space-x-3 text-[11px] font-medium">
-              <span class="text-[#DC4C4C]">● Before</span>
-              <span class="text-[#0E9F6E]">● After</span>
-            </div>
-          </div>
-
-          <!-- Chart Area -->
-          <div class="h-44 relative">
-            <canvas id="efficiencyTrendChart"></canvas>
-          </div>
-          <p id="chartEmptyCaption" class="text-center text-xs text-[#6B7280] italic">
-            No runs yet — baseline ticks active.
-          </p>
-        </div>
-
-        <!-- CARD 2: FINANCIAL SUMMARY -->
-        <div class="v2-card p-5 space-y-4 flex flex-col justify-between">
-          <div>
-            <h3 class="font-semibold text-sm text-[#1A1D23] mb-3">Financial Summary</h3>
-            <div class="space-y-2 text-xs">
-              <div class="flex justify-between items-center text-[#6B7280]">
-                <span>Expected saving</span>
-                <span id="finExpectedSaving" class="font-mono font-semibold text-[#1A1D23]">$0.000</span>
-              </div>
-              <div class="flex justify-between items-center text-[#6B7280]">
-                <span>Optimizer cost</span>
-                <span id="finOptimizerCost" class="font-mono text-[#6B7280]">$0.000</span>
-              </div>
-              <div class="border-t border-[#E5E7EA] pt-2 flex justify-between items-center font-semibold text-[#1A1D23]">
-                <span>Margin</span>
-                <span id="finMargin" class="font-mono text-[#0E9F6E]">$0.000</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Banner -->
-          <div id="finStatusBanner" class="p-2.5 rounded-md text-center font-bold text-xs bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/20">
-            ✓ WORTH OPTIMIZING
-          </div>
-        </div>
-
-        <!-- CARD 3: COMPRESSION SAFETY -->
-        <div class="v2-card p-5 space-y-4 flex flex-col justify-between">
-          <div>
-            <h3 class="font-semibold text-sm text-[#1A1D23] mb-3">Compression Safety</h3>
-            <div class="space-y-1.5 text-xs text-[#6B7280]">
-              <div class="flex items-center space-x-2">
-                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
-                <span>System prompts & constraints preserved</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
-                <span>Numerical figures & SLA terms intact</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
-                <span>Negation guardrails & rules protected</span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-[#0E9F6E]"></i>
-                <span>Error codes & keys preserved</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Status Banner -->
-          <div class="p-2.5 rounded-md text-center font-bold text-xs bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/20">
-            🔒 SAFE TO SEND
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ========================================================================= -->
-      <!-- DEEP PIPELINE DIAGNOSTICS & CHUNK INSPECTOR SURFACE                      -->
-      <!-- ========================================================================= -->
-      <div class="v2-card p-5 space-y-5">
-        <div class="flex items-center justify-between border-b border-[#E5E7EA] pb-3">
-          <div class="flex items-center space-x-3">
-            <i data-lucide="sliders" class="w-5 h-5 text-[#0E9F6E]"></i>
-            <h2 class="font-bold text-base text-[#1A1D23]">Deep Pipeline Diagnostics & Coherence Audit</h2>
           </div>
           
-          <div class="flex items-center space-x-3">
-            <span id="routeBadge" class="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-[#E5E7EA] text-[#6B7280]">
-              ROUTE: READY
-            </span>
-            <span id="qualityScoreBadge" class="hidden px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-[#E7F8F1] text-[#0E9F6E] border border-[#0E9F6E]/30">
-              100% Faithfulness
-            </span>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-on-surface-variant mb-1">Context Payload to Optimize</label>
+              <textarea id="input-context" class="w-full h-36 rounded-xl border border-outline-variant/40 bg-surface-container-lowest p-3 text-sm font-sans focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none leading-relaxed text-on-surface" placeholder="Paste your raw system context, documents, or logs here..."></textarea>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+              <div class="md:col-span-8">
+                <label class="block text-xs font-medium text-on-surface-variant mb-1">Target Query / User Instruction</label>
+                <input id="input-query" class="w-full rounded-lg border border-outline-variant/40 bg-surface-container-lowest p-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-on-surface" placeholder="Enter query for semantic relevance filtering..." type="text" value="Extract SLA terms, database constraints, and cost structure.">
+              </div>
+              <div class="md:col-span-4 flex items-end">
+                <button onclick="runOptimization()" id="btn-optimize" class="w-full bg-secondary text-on-primary font-bold text-xs py-2.5 px-5 rounded-lg hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2">
+                  <span id="spinner-icon" class="material-symbols-outlined text-[18px]">bolt</span>
+                  <span id="btn-optimize-text">Optimize Context</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Diagnostic Tabs Header -->
-        <div class="flex items-center space-x-4 border-b border-[#E5E7EA] text-xs font-medium">
-          <button id="diagTabBtnOverview" onclick="switchDiagTab('overview')" class="pb-2 text-[#0E9F6E] border-b-2 border-[#0E9F6E] font-semibold">
-            Latency & Stage Waterfall
-          </button>
-          <button id="diagTabBtnChunks" onclick="switchDiagTab('chunks')" class="pb-2 text-[#6B7280] hover:text-[#1A1D23]">
-            Chunk Metadata Audit Table
-          </button>
-        </div>
-
-        <!-- TAB 1: Latency & Token Waterfall -->
-        <div id="diagViewOverview" class="space-y-4">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
-              <span class="text-[#6B7280]">Original Tokens</span>
-              <div id="metricOriginalTokens" class="text-lg font-bold font-mono text-[#1A1D23]">0</div>
+        <div class="lg:col-span-4 bg-surface rounded-xl shadow-sm p-5 border border-outline-variant/20 flex flex-col justify-between items-center text-center relative overflow-hidden">
+          <div class="w-full border-b border-outline-variant/20 pb-2 mb-2">
+            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Before → After Efficiency</span>
+          </div>
+          
+          <div class="my-auto py-2">
+            <div class="flex items-baseline justify-center gap-3 mb-1">
+              <span id="metric-before" class="text-2xl font-geist font-semibold text-on-surface-variant line-through opacity-60">18,420</span>
+              <span class="text-2xl text-outline-variant">→</span>
+              <span id="metric-after" class="text-4xl font-geist font-bold text-on-surface">5,120</span>
+              <span class="text-xs font-semibold text-on-surface-variant">TOKENS</span>
             </div>
-            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
-              <span class="text-[#6B7280]">Optimized Tokens</span>
-              <div id="metricOptimizedTokens" class="text-lg font-bold font-mono text-[#0E9F6E]">0</div>
-            </div>
-            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
-              <span class="text-[#6B7280]">Reduction</span>
-              <div id="metricReductionPct" class="text-lg font-bold font-mono text-[#0E9F6E]">0.0%</div>
-            </div>
-            <div class="p-3 rounded-md bg-[#F9FAFB] border border-[#E5E7EA]">
-              <span class="text-[#6B7280]">Pipeline Latency</span>
-              <div id="metricTotalLatency" class="text-lg font-bold font-mono text-[#1A1D23]">0.0 ms</div>
+            
+            <div id="savings-badge" class="inline-flex items-center gap-1.5 bg-secondary-fixed-dim/30 text-on-secondary-container px-4 py-1.5 rounded-full mt-3 shadow-xs">
+              <span class="material-symbols-outlined text-[18px] text-secondary">arrow_downward</span>
+              <span id="metric-percent" class="font-geist text-xl font-bold text-secondary">72.2%</span>
+              <span class="text-xs font-bold text-secondary ml-0.5 uppercase">SAVINGS</span>
             </div>
           </div>
 
-          <!-- Stage-by-Stage Latency Breakdown -->
-          <div class="p-4 rounded-md bg-[#F9FAFB] border border-[#E5E7EA] space-y-3">
-            <h4 class="font-semibold text-xs text-[#1A1D23]">Stage-by-Stage Latency Breakdown (ms)</h4>
-            <div class="space-y-2 text-xs">
-              <div>
-                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
-                  <span>Tier 0: Chunking & Tagging</span>
-                  <span id="latChunking" class="font-mono">0.0 ms</span>
+          <div class="w-full pt-3 border-t border-outline-variant/20 flex items-center justify-around text-xs text-on-surface-variant">
+            <span>Latency: <strong id="summary-latency" class="text-on-surface">184ms</strong></span>
+            <span>•</span>
+            <span>Safety: <strong class="text-secondary font-bold">100% Passed</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-surface rounded-xl shadow-sm p-4 border border-outline-variant/20 hover:border-primary/40 transition-colors">
+          <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Token Reduction</p>
+          <div class="flex items-end justify-between">
+            <div class="text-2xl font-geist font-bold text-on-surface"><span id="card-tokens-before">18.4K</span> <span class="text-outline text-sm font-normal">→</span> <span id="card-tokens-after" class="text-primary">5K</span></div>
+            <span id="card-tokens-badge" class="bg-secondary-fixed-dim/30 text-on-secondary-container text-xs font-bold px-2 py-0.5 rounded-full">-72%</span>
+          </div>
+        </div>
+        
+        <div class="bg-surface rounded-xl shadow-sm p-4 border border-outline-variant/20 hover:border-primary/40 transition-colors">
+          <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Estimated Savings</p>
+          <div class="flex items-end justify-between">
+            <div id="card-savings-val" class="text-2xl font-geist font-bold text-on-surface">$0.42</div>
+            <span class="text-on-surface-variant text-xs">est. per call</span>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-xl shadow-sm p-4 border border-outline-variant/20 hover:border-primary/40 transition-colors">
+          <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Quality Preservation</p>
+          <div class="flex items-end justify-between">
+            <div id="card-quality-val" class="text-2xl font-geist font-bold text-on-surface">96%</div>
+            <span class="bg-secondary-fixed-dim/30 text-on-secondary-container text-xs font-bold px-2.5 py-0.5 rounded-full">High</span>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-xl shadow-sm p-4 border border-outline-variant/20 hover:border-primary/40 transition-colors">
+          <p class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-1">Processing Latency</p>
+          <div class="flex items-end justify-between">
+            <div id="card-latency-val" class="text-2xl font-geist font-bold text-on-surface">184ms</div>
+            <span class="text-on-surface-variant text-xs">&lt;5ms tier-0</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="lg:col-span-8 space-y-5">
+          <div class="bg-surface rounded-xl shadow-sm p-5 border border-outline-variant/20">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-md font-geist font-bold text-on-surface">Optimization Pipeline Execution</h3>
+              <span id="pipeline-status" class="text-xs font-semibold text-secondary flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-secondary"></span> 5 Stages Completed
+              </span>
+            </div>
+            
+            <div class="grid grid-cols-5 gap-2 relative">
+              <div class="absolute left-6 right-6 top-5 h-0.5 bg-outline-variant/30 -z-0"></div>
+              
+              <div id="stage-1" class="flex flex-col items-center gap-1.5 z-10">
+                <div class="w-10 h-10 rounded-full bg-secondary text-on-primary flex items-center justify-center shadow-xs transition-all duration-300">
+                  <span class="material-symbols-outlined text-[18px]">view_module</span>
                 </div>
-                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
-                  <div id="barLatChunking" class="bg-[#3B82F6] h-full" style="width: 0%"></div>
-                </div>
+                <span class="text-[11px] font-bold text-on-surface uppercase">Chunk</span>
+                <span id="stage-1-sub" class="text-[10px] text-on-surface-variant font-medium">42 chunks</span>
               </div>
 
-              <div>
-                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
-                  <span>Tier 1: Embedding Relevance Filtering</span>
-                  <span id="latRelevance" class="font-mono">0.0 ms</span>
+              <div id="stage-2" class="flex flex-col items-center gap-1.5 z-10">
+                <div class="w-10 h-10 rounded-full bg-secondary text-on-primary flex items-center justify-center shadow-xs transition-all duration-300">
+                  <span class="material-symbols-outlined text-[18px]">filter_alt</span>
                 </div>
-                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
-                  <div id="barLatRelevance" class="bg-[#0284C7] h-full" style="width: 0%"></div>
-                </div>
+                <span class="text-[11px] font-bold text-on-surface uppercase">Relevance</span>
+                <span id="stage-2-sub" class="text-[10px] text-on-surface-variant font-medium">τ=0.18</span>
               </div>
 
-              <div>
-                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
-                  <span>Tier 1: Semantic Deduplication</span>
-                  <span id="latDedup" class="font-mono">0.0 ms</span>
+              <div id="stage-3" class="flex flex-col items-center gap-1.5 z-10">
+                <div class="w-10 h-10 rounded-full bg-secondary text-on-primary flex items-center justify-center shadow-xs transition-all duration-300">
+                  <span class="material-symbols-outlined text-[18px]">merge_type</span>
                 </div>
-                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
-                  <div id="barLatDedup" class="bg-[#D97706] h-full" style="width: 0%"></div>
-                </div>
+                <span class="text-[11px] font-bold text-on-surface uppercase">Dedup</span>
+                <span id="stage-3-sub" class="text-[10px] text-on-surface-variant font-medium">τ=0.85</span>
               </div>
 
-              <div>
-                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
-                  <span>Tier 2: Coherence Compression</span>
-                  <span id="latCompression" class="font-mono">0.0 ms</span>
+              <div id="stage-4" class="flex flex-col items-center gap-1.5 z-10">
+                <div class="w-10 h-10 rounded-full bg-secondary text-on-primary flex items-center justify-center shadow-xs transition-all duration-300">
+                  <span class="material-symbols-outlined text-[18px]">compress</span>
                 </div>
-                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
-                  <div id="barLatCompression" class="bg-[#9333EA] h-full" style="width: 0%"></div>
-                </div>
+                <span class="text-[11px] font-bold text-on-surface uppercase">Compress</span>
+                <span id="stage-4-sub" class="text-[10px] text-on-surface-variant font-medium">Knapsack</span>
               </div>
 
+              <div id="stage-5" class="flex flex-col items-center gap-1.5 z-10">
+                <div class="w-10 h-10 rounded-full bg-secondary text-on-primary flex items-center justify-center shadow-xs transition-all duration-300">
+                  <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                </div>
+                <span class="text-[11px] font-bold text-on-surface uppercase">Safety</span>
+                <span id="stage-5-sub" class="text-[10px] text-on-surface-variant font-medium">5 Pinned</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-surface rounded-xl shadow-sm p-5 border border-outline-variant/20">
+            <div class="flex justify-between items-center mb-4">
               <div>
-                <div class="flex justify-between text-[11px] text-[#6B7280] mb-0.5">
-                  <span>Tier 3: Coherence Assembly</span>
-                  <span id="latAssembly" class="font-mono">0.0 ms</span>
+                <h3 class="text-md font-geist font-bold text-on-surface">Token Efficiency Trend</h3>
+                <p class="text-xs text-on-surface-variant">Sequential context optimization requests over time</p>
+              </div>
+              <div class="flex gap-4 text-xs font-medium">
+                <div class="flex items-center gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-error"></div>
+                  <span class="text-on-surface-variant">Before Optimization</span>
                 </div>
-                <div class="w-full bg-[#E5E7EA] h-1.5 rounded-full overflow-hidden">
-                  <div id="barLatAssembly" class="bg-[#0E9F6E] h-full" style="width: 0%"></div>
+                <div class="flex items-center gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-secondary"></div>
+                  <span class="text-on-surface-variant">After Optimization</span>
                 </div>
+              </div>
+            </div>
+
+            <div class="relative h-56 w-full flex items-end pt-4">
+              <div class="absolute left-0 top-0 h-full flex flex-col justify-between text-[11px] text-on-surface-variant font-mono opacity-70">
+                <span>20K</span>
+                <span>15K</span>
+                <span>10K</span>
+                <span>5K</span>
+                <span>0</span>
+              </div>
+              
+              <div class="flex-1 ml-9 h-full border-l border-b border-outline-variant/30 relative">
+                <svg class="w-full h-full overflow-visible" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <line x1="0" y1="0" x2="100" y2="0" stroke="#c3c6d7" stroke-width="0.3" stroke-dasharray="2,2"/>
+                  <line x1="0" y1="25" x2="100" y2="25" stroke="#c3c6d7" stroke-width="0.3" stroke-dasharray="2,2"/>
+                  <line x1="0" y1="50" x2="100" y2="50" stroke="#c3c6d7" stroke-width="0.3" stroke-dasharray="2,2"/>
+                  <line x1="0" y1="75" x2="100" y2="75" stroke="#c3c6d7" stroke-width="0.3" stroke-dasharray="2,2"/>
+
+                  <path id="chart-path-before" d="M 8 18 L 25 15 L 42 22 L 59 10 L 76 28 L 93 15" fill="none" stroke="#ba1a1a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path id="chart-path-after" d="M 8 75 L 25 80 L 42 70 L 59 88 L 76 68 L 93 80" fill="none" stroke="#006c49" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+                  <g fill="#ba1a1a">
+                    <circle cx="8" cy="18" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 1: 18,420 tokens</title></circle>
+                    <circle cx="25" cy="15" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 2: 19,100 tokens</title></circle>
+                    <circle cx="42" cy="22" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 3: 17,800 tokens</title></circle>
+                    <circle cx="59" cy="10" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 4: 20,200 tokens</title></circle>
+                    <circle cx="76" cy="28" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 5: 16,500 tokens</title></circle>
+                    <circle cx="93" cy="15" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 6: 19,000 tokens</title></circle>
+                  </g>
+                  
+                  <g fill="#006c49">
+                    <circle cx="8" cy="75" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 1: 5,120 tokens (-72%)</title></circle>
+                    <circle cx="25" cy="80" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 2: 4,300 tokens (-77%)</title></circle>
+                    <circle cx="42" cy="70" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 3: 5,900 tokens (-67%)</title></circle>
+                    <circle cx="59" cy="88" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 4: 3,800 tokens (-81%)</title></circle>
+                    <circle cx="76" cy="68" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 5: 6,100 tokens (-63%)</title></circle>
+                    <circle cx="93" cy="80" r="2.5" class="hover:r-4 transition-all cursor-pointer"><title>Req 6: 4,900 tokens (-74%)</title></circle>
+                  </g>
+                </svg>
+
+                <div class="absolute -bottom-6 w-full flex justify-between text-[11px] font-medium text-on-surface-variant">
+                  <span>Req 1</span>
+                  <span>Req 2</span>
+                  <span>Req 3</span>
+                  <span>Req 4</span>
+                  <span>Req 5</span>
+                  <span>Req 6</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-7 text-center text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Sequential Context Optimization Runs</div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 space-y-5 flex flex-col justify-between">
+          <div class="bg-surface rounded-xl shadow-sm p-5 border border-outline-variant/20">
+            <h3 class="text-md font-geist font-bold text-on-surface mb-3">Financial Summary</h3>
+            <div class="space-y-2.5 mb-5 text-sm">
+              <div class="flex justify-between items-center">
+                <span class="text-on-surface-variant">Expected Downstream Savings</span>
+                <span id="fin-saving" class="font-semibold text-on-surface">$0.410</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-on-surface-variant">Optimizer Compute Cost</span>
+                <span id="fin-cost" class="font-semibold text-on-surface">$0.003</span>
+              </div>
+              <div class="pt-2.5 border-t border-outline-variant/20 flex justify-between items-center text-sm font-bold">
+                <span class="text-on-surface">Net Financial Margin</span>
+                <span id="fin-margin" class="text-secondary font-geist text-base">$0.407</span>
+              </div>
+            </div>
+            <div class="w-full py-2.5 bg-secondary-fixed-dim/30 text-on-secondary-container rounded-lg text-center font-bold text-xs flex items-center justify-center gap-2 border border-secondary/20">
+              <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+              <span>WORTH OPTIMIZING</span>
+            </div>
+          </div>
+
+          <div class="bg-surface rounded-xl shadow-sm p-5 border border-outline-variant/20">
+            <h3 class="text-md font-geist font-bold text-on-surface mb-3">Compression Safety Guarantee</h3>
+            <ul class="space-y-2 mb-5 text-xs text-on-surface-variant font-medium">
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+                <span>Negation preserved ("DO NOT use MongoDB")</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+                <span>Exact numbers preserved ("30s SLA, $999/mo")</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+                <span>Hard constraints preserved (Stateless requirement)</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+                <span>Error codes preserved (HTTP 503 retry policy)</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span>
+                <span>Architectural decision preserved</span>
+              </li>
+            </ul>
+            <div class="w-full py-2.5 bg-secondary-fixed-dim/30 text-on-secondary-container rounded-lg text-center font-bold text-xs flex items-center justify-center gap-2 border border-secondary/20">
+              <span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+              <span>SAFE TO SEND TO DOWNSTREAM LLM</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-surface rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden">
+        <div class="bg-surface-container-low px-5 py-3 border-b border-outline-variant/20 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <button onclick="switchInspectorTab('output')" id="tab-btn-output" class="px-4 py-1.5 rounded-lg text-xs font-bold bg-surface text-primary shadow-xs border border-outline-variant/30 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">description</span>
+              <span>Optimized Context Output</span>
+            </button>
+            <button onclick="switchInspectorTab('diff')" id="tab-btn-diff" class="px-4 py-1.5 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">rule</span>
+              <span>Constraint & Diff Inspector</span>
+            </button>
+            <button onclick="switchInspectorTab('waterfall')" id="tab-btn-waterfall" class="px-4 py-1.5 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">waterfall_chart</span>
+              <span>Stage Token Waterfall</span>
+            </button>
+          </div>
+          <button onclick="copyOptimizedContext()" class="bg-primary text-on-primary text-xs px-3.5 py-1.5 rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">content_copy</span>
+            <span>Copy Optimized Context</span>
+          </button>
+        </div>
+
+        <div id="inspector-output" class="p-5">
+          <div class="relative">
+            <textarea id="output-context-text" readonly class="w-full h-44 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-4 text-xs font-mono leading-relaxed text-on-surface outline-none resize-none">=== SYSTEM & PINNED CONSTRAINTS ===
+[PINNED_CONSTRAINT] DO NOT use MongoDB for this project under any circumstances.
+[PINNED_SLA] Enterprise SLA timeout is set to 30s. Refund window is 30 calendar days at $999/mo.
+[PINNED_ARCHITECTURE] The core API design must remain strictly stateless.
+
+=== COMPRESSED CONTEXT (RELEVANCE DEDUPED) ===
+System Architecture Overview: ContextFlow operates as an inline 6-stage cost-aware context optimization proxy layer between client code and downstream LLM providers (OpenAI, Anthropic, Gemini).
+Features:
+- Stage 0: Pinned constraint extraction (<5ms, zero LLM compute cost).
+- Stage 1: Cosine relevance scoring (tau_rel = 0.18).
+- Stage 2: Deduplication merging redundant paragraphs (tau_dedup = 0.85).
+- Stage 3: Budget knapsack extractive compression protecting pinned constraints.
+- Stage 4: Position flow re-assembly preserving top-down sequence coherence.</textarea>
+          </div>
+        </div>
+
+        <div id="inspector-diff" class="p-5 hidden">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="space-y-2">
+              <div class="font-bold text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-error"></span> Original Raw Context (18,420 tokens)
+              </div>
+              <div class="p-3 bg-error-container/20 border border-error/30 rounded-xl font-mono leading-relaxed text-on-surface h-48 overflow-y-auto">
+                <p class="mb-2 text-error font-semibold">[VERBOSE HEADER & DUPES REMOVED]</p>
+                <p class="mb-2 line-through opacity-60">Welcome to the enterprise ContextFlow manual. Here is a long introductory paragraph about general software engineering best practices that adds unnecessary token overhead...</p>
+                <p class="bg-secondary-fixed-dim/40 text-on-secondary-container p-1 rounded font-bold">Constraint: DO NOT use MongoDB for this project under any circumstances.</p>
+                <p class="mb-2 line-through opacity-60">MongoDB was evaluated in Q1 but rejected due to ACID transaction requirements.</p>
+                <p class="bg-secondary-fixed-dim/40 text-on-secondary-container p-1 rounded font-bold">Timeout is set to 30s. Enterprise SLA is $999/mo with 30 calendar days refund window.</p>
+                <p class="mb-2 line-through opacity-60">Additional repeated sentences about SLA terms and conditions duplicated across section 4 and section 12...</p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <div class="font-bold text-on-surface-variant uppercase tracking-wider flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-secondary"></span> Pinned & Surviving Chunks (5,120 tokens)
+              </div>
+              <div class="p-3 bg-secondary-fixed-dim/15 border border-secondary/30 rounded-xl font-mono leading-relaxed text-on-surface h-48 overflow-y-auto">
+                <p class="text-secondary font-bold mb-1">✓ PINNED GUARANTEES:</p>
+                <div class="bg-white p-2 rounded border border-secondary/40 text-on-secondary-container font-semibold mb-2">
+                  • [PINNED] DO NOT use MongoDB for this project under any circumstances.<br>
+                  • [PINNED] Timeout is set to 30s. Enterprise SLA is $999/mo with 30 calendar days refund window.<br>
+                  • [PINNED] The API must remain stateless.
+                </div>
+                <p class="text-on-surface-variant font-medium">✓ SURVIVING RELEVANT CHUNKS:</p>
+                <p class="text-on-surface text-[11px]">ContextFlow 6-stage optimization pipeline guarantees coherence, zero contract violation, and 70%+ token savings.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="inspector-waterfall" class="p-5 hidden">
+          <h4 class="text-xs font-bold text-on-surface uppercase mb-3">Stage-by-Stage Token Reduction Waterfall</h4>
+          <div class="space-y-3 text-xs">
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Input Raw Context</span>
+                <span class="font-mono font-bold">18,420 tokens (100%)</span>
+              </div>
+              <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-error" style="width: 100%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Stage 1: Chunking & Tier-0 Pinning</span>
+                <span class="font-mono font-bold">16,200 tokens (-12%)</span>
+              </div>
+              <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-tertiary" style="width: 88%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Stage 2: Semantic Relevance Filter (τ=0.18)</span>
+                <span class="font-mono font-bold">9,800 tokens (-47%)</span>
+              </div>
+              <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-primary" style="width: 53%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Stage 3: Cross-Chunk Deduplication (τ=0.85)</span>
+                <span class="font-mono font-bold">6,900 tokens (-62%)</span>
+              </div>
+              <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-primary-container" style="width: 37%"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between mb-1">
+                <span>Stage 4: Extractive Compression & Budget Knapsack</span>
+                <span class="font-mono font-bold">5,120 tokens (-72.2%)</span>
+              </div>
+              <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                <div class="h-full bg-secondary" style="width: 27.8%"></div>
               </div>
             </div>
           </div>
