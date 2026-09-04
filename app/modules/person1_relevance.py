@@ -12,7 +12,8 @@ SYSTEM_PATTERNS = [
     r"^#+ (system|role|persona|instructions)",
 ]
 CONSTRAINT_PATTERNS = [
-    r"\b(must|must not|do not|cannot|never|always|constraint|rule|requirement|prohibited|mandatory)\b",
+    r"\b(must not|do not|cannot|never|prohibited|mandatory|shall not|do not use|no mongodb|do not modify)\b",
+    r"^(constraint|rule|guardrail|requirement|system|pinned):?",
     r"^#+ (constraints|rules|guardrails|requirements)",
 ]
 CODE_PATTERNS = [
@@ -33,7 +34,7 @@ def _is_critical_chunk(text: str, tag: str) -> bool:
         if re.search(pat, text_lower, re.IGNORECASE | re.MULTILINE):
             return True
     for pat in CONSTRAINT_PATTERNS:
-        if re.search(pat, text_lower, re.IGNORECASE):
+        if re.search(pat, text_lower, re.IGNORECASE | re.MULTILINE):
             return True
     return False
 
@@ -45,7 +46,7 @@ def _detect_tag(text: str) -> str:
         if re.search(pat, text_lower, re.IGNORECASE | re.MULTILINE):
             return "system"
     for pat in CONSTRAINT_PATTERNS:
-        if re.search(pat, text_lower, re.IGNORECASE):
+        if re.search(pat, text_lower, re.IGNORECASE | re.MULTILINE):
             return "constraint"
     for pat in CODE_PATTERNS:
         if re.search(pat, text, re.IGNORECASE):
@@ -69,8 +70,8 @@ def tier0_chunk_and_tag(context: str) -> List[ChunkInfo]:
     if not context or not context.strip():
         return []
 
-    # Preserve code blocks if any
-    raw_blocks = re.split(r"\n\s*\n+", context.strip())
+    # Preserve code blocks and split by double newlines or section headers [...] / #
+    raw_blocks = re.split(r"\n\s*\n+|(?<=\n)(?=\[[A-Z0-9_\-\s]+\]|#+\s+)", context.strip())
     chunks: List[ChunkInfo] = []
     
     pos = 0
@@ -79,12 +80,12 @@ def tier0_chunk_and_tag(context: str) -> List[ChunkInfo]:
         if not block_text:
             continue
         
-        # Check if block consists of multiple distinct constraint / system directive lines
+        # If block has multiple lines and contains a mixture of critical and non-critical lines, split lines
         lines = [ln.strip() for ln in block_text.splitlines() if ln.strip()]
-        if len(lines) > 1 and all(_is_critical_chunk(ln, _detect_tag(ln)) for ln in lines):
+        if len(lines) > 1 and any(_is_critical_chunk(ln, _detect_tag(ln)) for ln in lines):
             for ln in lines:
                 tag = _detect_tag(ln)
-                is_crit = True
+                is_crit = _is_critical_chunk(ln, tag)
                 tokens = count_tokens(ln)
                 chunks.append(ChunkInfo(
                     id=f"chk_{pos}",
@@ -95,7 +96,7 @@ def tier0_chunk_and_tag(context: str) -> List[ChunkInfo]:
                     is_critical=is_crit,
                     relevance_score=1.0,
                     token_count=tokens,
-                    action_taken="pinned"
+                    action_taken="pinned" if is_crit else "kept"
                 ))
                 pos += 1
             continue
@@ -197,10 +198,44 @@ def _compute_similarity(text_a: str, text_b: str) -> float:
     return dot / (mag_a * mag_b)
 
 
+def _compute_relevance(query: str, chunk_text: str) -> float:
+    """
+    Compute hybrid relevance score incorporating stem cosine similarity
+    and query keyword coverage so that extraction queries never drop matching context chunks.
+    """
+    if not query or not query.strip():
+        return 1.0
+
+    raw_sim = _compute_similarity(query, chunk_text)
+
+    stopwords = {
+        "what", "where", "when", "which", "who", "whom", "whose", "why", "how",
+        "this", "that", "these", "those", "is", "are", "was", "were", "be", "been",
+        "being", "have", "has", "had", "do", "does", "did", "can", "could", "should",
+        "would", "will", "shall", "may", "might", "must", "and", "or", "but", "if",
+        "then", "else", "for", "with", "about", "against", "between", "into", "through",
+        "during", "before", "after", "above", "below", "to", "from", "up", "down", "in",
+        "out", "on", "off", "over", "under", "again", "further", "once", "here", "there",
+        "the", "a", "an"
+    }
+    q_words = [w.lower().strip(",.?!;:()[]{}") for w in query.split()]
+    key_words = [w for w in q_words if len(w) >= 3 and w not in stopwords]
+
+    if not key_words:
+        return raw_sim
+
+    c_text_lower = chunk_text.lower()
+    matches = sum(1 for kw in key_words if _stem(kw) in c_text_lower or kw in c_text_lower)
+    keyword_coverage = matches / len(key_words)
+
+    hybrid_score = max(raw_sim, keyword_coverage * 0.85)
+    return round(hybrid_score, 4)
+
+
 def tier1_filter_relevance(
     query: str,
     chunks: List[ChunkInfo],
-    relevance_threshold: float = 0.18
+    relevance_threshold: float = 0.10
 ) -> Tuple[List[ChunkInfo], int]:
     """
     Score relevance against query. Keep critical chunks and high-scoring chunks.
@@ -219,11 +254,11 @@ def tier1_filter_relevance(
             surviving.append(chunk)
             continue
 
-        sim = _compute_similarity(query_clean, chunk.text)
-        chunk.relevance_score = round(sim, 4)
+        score = _compute_relevance(query_clean, chunk.text)
+        chunk.relevance_score = score
         
-        # If similarity meets threshold or query terms overlap meaningfully
-        if sim >= relevance_threshold or len(query_clean) == 0:
+        # Keep chunk if it has keyword coverage/relevance or if query is empty
+        if score >= relevance_threshold or not query_clean:
             chunk.action_taken = "kept"
             surviving.append(chunk)
         else:
@@ -253,22 +288,18 @@ def tier1_deduplicate(
     merged_count = 0
 
     for chunk in chunks:
-        # Critical chunks bypass deduplication dropping
-        if chunk.is_critical:
-            deduped.append(chunk)
-            continue
-
-        # Check against already kept chunks
         is_dup = False
         for existing in deduped:
-            if existing.is_critical:
-                continue
             sim = _compute_similarity(chunk.text, existing.text)
             if sim >= dedup_threshold:
                 is_dup = True
                 chunk.action_taken = "merged_duplicate"
                 merged_count += 1
-                # If current chunk has more detail, replace existing text
+                # If current chunk is critical, ensure surviving existing chunk remains critical & detailed
+                if chunk.is_critical:
+                    existing.is_critical = True
+                    if existing.action_taken != "pinned":
+                        existing.action_taken = "pinned"
                 if chunk.token_count > existing.token_count:
                     existing.text = chunk.text
                     existing.token_count = chunk.token_count

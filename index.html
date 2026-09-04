@@ -646,339 +646,51 @@ Features:
             </div>
           </div>
         </div>
-      </section>
-    </div>
-  </main>
 
-  <main id="view-dashboard" class="flex-1 overflow-y-auto p-6 bg-background hidden">
-    <div class="max-w-7xl mx-auto space-y-6">
-      <div class="bg-surface rounded-xl p-6 shadow-sm border border-outline-variant/20">
-        <h3 class="text-xl font-geist font-bold text-on-surface mb-2">ContextFlow System Dashboard Overview</h3>
-        <p class="text-sm text-on-surface-variant">Real-time telemetry and aggregate efficiency stats across all downstream LLM calls.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div class="bg-surface p-5 rounded-xl border border-outline-variant/20 shadow-sm">
-          <div class="text-xs font-bold text-on-surface-variant uppercase mb-1">Total Tokens Optimized</div>
-          <div class="text-3xl font-geist font-bold text-primary">1,482,900</div>
-          <div class="text-xs text-secondary font-semibold mt-2">↑ 34% this week</div>
-        </div>
-        
-        <div class="bg-surface p-5 rounded-xl border border-outline-variant/20 shadow-sm">
-          <div class="text-xs font-bold text-on-surface-variant uppercase mb-1">Cumulative Cost Savings</div>
-          <div class="text-3xl font-geist font-bold text-secondary">$142.80</div>
-          <div class="text-xs text-secondary font-semibold mt-2">Net Margin: 99.2%</div>
-        </div>
-
-        <div class="bg-surface p-5 rounded-xl border border-outline-variant/20 shadow-sm">
-          <div class="text-xs font-bold text-on-surface-variant uppercase mb-1">Constraint Safety Rate</div>
-          <div class="text-3xl font-geist font-bold text-on-surface">100.0%</div>
-          <div class="text-xs text-secondary font-semibold mt-2">0 Negations Violations</div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <main id="view-analytics" class="flex-1 overflow-y-auto p-6 bg-background hidden">
-    <div class="max-w-7xl mx-auto space-y-6">
-      <div class="bg-surface rounded-xl p-6 shadow-sm border border-outline-variant/20">
-        <h3 class="text-xl font-geist font-bold text-on-surface mb-2">Analytics & Performance Metrics</h3>
-        <p class="text-sm text-on-surface-variant">Detailed statistical breakdown of token reduction distributions and latency impact.</p>
-      </div>
-    </div>
-  </main>
-
-  <main id="view-history" class="flex-1 overflow-y-auto p-6 bg-background hidden">
-    <div class="max-w-7xl mx-auto space-y-6">
-      <div class="bg-surface rounded-xl p-6 shadow-sm border border-outline-variant/20">
-        <h3 class="text-xl font-geist font-bold text-on-surface mb-4">Optimization History Logs</h3>
-        <div class="overflow-x-auto">
+        <!-- TAB 2: Chunk Metadata Audit Table -->
+        <div id="diagViewChunks" class="hidden overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-surface-container-low text-on-surface-variant font-bold border-b border-outline-variant/20">
-              <tr>
-                <th class="p-3">Req ID</th>
-                <th class="p-3">Timestamp</th>
-                <th class="p-3">Query</th>
-                <th class="p-3">Before</th>
-                <th class="p-3">After</th>
-                <th class="p-3">Savings</th>
-                <th class="p-3">Cost Saved</th>
-                <th class="p-3">Status</th>
+            <thead>
+              <tr class="bg-[#F9FAFB] border-b border-[#E5E7EA] text-[#6B7280] font-semibold">
+                <th class="py-2.5 px-3">Chunk ID</th>
+                <th class="py-2.5 px-3">Pos</th>
+                <th class="py-2.5 px-3">Tag</th>
+                <th class="py-2.5 px-3">Tokens</th>
+                <th class="py-2.5 px-3">Relevance</th>
+                <th class="py-2.5 px-3">Action</th>
+                <th class="py-2.5 px-4">Content Preview</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-outline-variant/20 font-mono text-on-surface">
+            <tbody id="chunksTableBody">
               <tr>
-                <td class="p-3 text-primary font-bold">#CF-9481</td>
-                <td class="p-3">10:52:14 AM</td>
-                <td class="p-3 font-sans">Extract SLA terms & constraints</td>
-                <td class="p-3">18,420</td>
-                <td class="p-3 font-bold text-secondary">5,120</td>
-                <td class="p-3 text-secondary font-bold">-72.2%</td>
-                <td class="p-3">$0.407</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-secondary-fixed-dim/30 text-on-secondary-container font-bold text-[10px]">SAFE</span></td>
-              </tr>
-              <tr>
-                <td class="p-3 text-primary font-bold">#CF-9480</td>
-                <td class="p-3">10:48:02 AM</td>
-                <td class="p-3 font-sans">Analyze system API specs</td>
-                <td class="p-3">12,100</td>
-                <td class="p-3 font-bold text-secondary">3,400</td>
-                <td class="p-3 text-secondary font-bold">-71.9%</td>
-                <td class="p-3">$0.261</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-secondary-fixed-dim/30 text-on-secondary-container font-bold text-[10px]">SAFE</span></td>
-              </tr>
-              <tr>
-                <td class="p-3 text-primary font-bold">#CF-9479</td>
-                <td class="p-3">10:41:30 AM</td>
-                <td class="p-3 font-sans">Adversarial negation check</td>
-                <td class="p-3">8,500</td>
-                <td class="p-3 font-bold text-secondary">2,150</td>
-                <td class="p-3 text-secondary font-bold">-74.7%</td>
-                <td class="p-3">$0.190</td>
-                <td class="p-3"><span class="px-2 py-0.5 rounded-full bg-secondary-fixed-dim/30 text-on-secondary-container font-bold text-[10px]">SAFE</span></td>
+                <td colspan="7" class="py-6 text-center text-[#6B7280]">
+                  No chunk details available. Run an optimization pipeline to inspect chunks.
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
+
       </div>
-    </div>
-  </main>
 
-  <main id="view-settings" class="flex-1 overflow-y-auto p-6 bg-background hidden">
-    <div class="max-w-7xl mx-auto space-y-6">
-      <div class="bg-surface rounded-xl p-6 shadow-sm border border-outline-variant/20 space-y-5">
-        <h3 class="text-xl font-geist font-bold text-on-surface mb-2">Engine Settings & Threshold Configuration</h3>
-        
-        <div class="space-y-4 max-w-xl text-sm">
-          <div>
-            <label class="block font-medium text-on-surface mb-1">Backend API Endpoint</label>
-            <input id="setting-api-url" type="text" value="http://127.0.0.1:8000" class="w-full p-2.5 rounded-lg border border-outline-variant/40 bg-surface-container-lowest font-mono text-xs">
-          </div>
+    </main>
+  </div>
 
-          <div>
-            <label class="block font-medium text-on-surface mb-1">Semantic Relevance Threshold (τ_rel)</label>
-            <input type="range" min="0.05" max="0.5" step="0.01" value="0.18" class="w-full accent-primary">
-            <span class="text-xs text-on-surface-variant">Default: 0.18 (Cosine similarity cutoff)</span>
-          </div>
+  <!-- Toast Notification Container -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 bg-[#1A1D23] text-white px-4 py-3 rounded-lg shadow-xl text-xs font-medium flex items-center space-x-2.5 opacity-0 translate-y-12 pointer-events-none transition-all duration-300">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-[#0E9F6E]"></i>
+    <span id="toastMessage">Notification message</span>
+  </div>
 
-          <div>
-            <label class="block font-medium text-on-surface mb-1">Deduplication Threshold (τ_dedup)</label>
-            <input type="range" min="0.5" max="0.95" step="0.01" value="0.85" class="w-full accent-primary">
-            <span class="text-xs text-on-surface-variant">Default: 0.85 (Cross-chunk similarity merge limit)</span>
-          </div>
-
-          <button onclick="showToast('Settings saved successfully!')" class="bg-primary text-on-primary font-bold text-xs py-2 px-5 rounded-lg hover:opacity-90">Save Settings</button>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<script>
-const SAMPLE_PRESETS = {
-  support: {
-    context: `ENTERPRISE SUPPORT TICKET LOG & SYSTEM MANUAL - TICKET #94012
-Date: 2026-08-30
-Priority: Urgent
-Customer Tier: Enterprise ($999/mo)
-
-[CRITICAL SYSTEM CONSTRAINTS]
-1. DO NOT use MongoDB for this project under any circumstances. All persistence must use PostgreSQL.
-2. SLA Timeout is strictly set to 30s. Refund window is 30 calendar days.
-3. The core API implementation must remain strictly stateless.
-
-[SYSTEM LOG DETAILS]
-The application reported high latency in the authentication pipeline. Worker process #4 spent 450ms resolving token validation. System memory usage peaked at 82%. Subsequent retries succeeded after 200ms.
-[DUPLICATE ENTRY SECTION 4]
-The application reported high latency in the authentication pipeline. Worker process #4 spent 450ms resolving token validation. System memory usage peaked at 82%. Subsequent retries succeeded after 200ms.
-[DUPLICATE ENTRY SECTION 12]
-SLA Timeout is strictly set to 30s. Refund window is 30 calendar days. DO NOT use MongoDB for this project.
-
-[BEST PRACTICES & GENERAL DOCUMENTATION]
-Always keep your software updated to the latest minor version. Ensure logging level is set to INFO in production environments. Follow standard REST conventions for route naming.`,
-    query: "Extract SLA terms, database constraints, and cost structure.",
-    beforeTokens: 18420,
-    afterTokens: 5120,
-    savingsPercent: "72.2%",
-    costSaved: "$0.407"
-  },
-  contract: {
-    context: `MASTER SERVICE AGREEMENT & SLA SPECIFICATION v4.2
-Effective Date: January 1, 2026
-
-[PINNED CONTRACTUAL CLAUSES]
-- Clause 4.1: Enterprise SLA guarantees 99.99% uptime. Failure to comply results in a 15% billing credit.
-- Clause 8.3: Data retention policy requires zero storage of raw LLM prompts beyond 24 hours.
-- Clause 12.1: Timeout limit per request is strictly 1500ms.
-
-[GENERAL OVERHEAD & LEGAL BOILERPLATE]
-This agreement is governed by the laws of California. Neither party shall be liable for indirect, incidental, or consequential damages arising out of contract execution...`,
-    query: "Summarize SLA uptime guarantee, timeout limits, and data retention rules.",
-    beforeTokens: 12100,
-    afterTokens: 3400,
-    savingsPercent: "71.9%",
-    costSaved: "$0.261"
-  },
-  adversarial: {
-    context: `ADVERSARIAL NEGATION TEST SUITE
-Test Case ID: ADV-8891
-
-[ATTENTION ATTACK CONSTRAINTS]
-- Constraint A: DO NOT enable public registration without admin approval.
-- Constraint B: Never store API keys in plaintext environment variables.
-- Constraint C: Maximum batch size is exactly 50 items.
-
-[BACKGROUND NOISE]
-Public registration is standard for consumer apps. API keys can be stored in various configuration files or environment variables. Batch sizes range from 10 to 500 depending on database capacity.`,
-    query: "Extract all negative constraints and hard limits.",
-    beforeTokens: 8500,
-    afterTokens: 2150,
-    savingsPercent: "74.7%",
-    costSaved: "$0.190"
-  }
-};
-
-let currentTab = 'optimization';
-let currentInspectorTab = 'output';
-
-document.addEventListener('DOMContentLoaded', () => {
-  loadPreset('support');
-});
-
-function switchTab(tabId) {
-  currentTab = tabId;
-  const tabs = ['dashboard', 'optimization', 'analytics', 'history', 'settings'];
-  tabs.forEach(t => {
-    const view = document.getElementById(`view-${t}`);
-    const nav = document.getElementById(`nav-${t}`);
-    if (t === tabId) {
-      view?.classList.remove('hidden');
-      nav?.classList.add('bg-secondary-container', 'text-on-secondary-container', 'border-l-4', 'border-secondary', 'font-semibold');
-      nav?.classList.remove('text-on-surface-variant');
-    } else {
-      view?.classList.add('hidden');
-      nav?.classList.remove('bg-secondary-container', 'text-on-secondary-container', 'border-l-4', 'border-secondary', 'font-semibold');
-      nav?.classList.add('text-on-surface-variant');
-    }
-  });
-  
-  const titles = {
-    dashboard: 'Dashboard Overview',
-    optimization: 'Optimization Engine',
-    analytics: 'Analytics & Performance',
-    history: 'Optimization History',
-    settings: 'Engine Settings'
-  };
-  document.getElementById('header-title').textContent = titles[tabId] || 'ContextFlow';
-}
-
-function switchInspectorTab(tabId) {
-  currentInspectorTab = tabId;
-  const tabs = ['output', 'diff', 'waterfall'];
-  tabs.forEach(t => {
-    const view = document.getElementById(`inspector-${t}`);
-    const btn = document.getElementById(`tab-btn-${t}`);
-    if (t === tabId) {
-      view?.classList.remove('hidden');
-      btn?.classList.add('bg-surface', 'text-primary', 'shadow-xs', 'border', 'border-outline-variant/30', 'font-bold');
-      btn?.classList.remove('text-on-surface-variant');
-    } else {
-      view?.classList.add('hidden');
-      btn?.classList.remove('bg-surface', 'text-primary', 'shadow-xs', 'border', 'border-outline-variant/30', 'font-bold');
-      btn?.classList.add('text-on-surface-variant');
-    }
-  });
-}
-
-function togglePresetDropdown() {
-  const dd = document.getElementById('preset-dropdown');
-  dd.classList.toggle('hidden');
-}
-
-function loadPreset(presetKey) {
-  const data = SAMPLE_PRESETS[presetKey];
-  if (!data) return;
-  document.getElementById('input-context').value = data.context;
-  document.getElementById('input-query').value = data.query;
-  document.getElementById('preset-dropdown').classList.add('hidden');
-  updateMetricsDisplay(data);
-  showToast(`Loaded ${presetKey.toUpperCase()} preset context.`);
-}
-
-function clearInput() {
-  document.getElementById('input-context').value = '';
-  document.getElementById('input-query').value = '';
-  showToast('Context input cleared.');
-}
-
-function updateMetricsDisplay(data) {
-  document.getElementById('metric-before').textContent = data.beforeTokens.toLocaleString();
-  document.getElementById('metric-after').textContent = data.afterTokens.toLocaleString();
-  document.getElementById('metric-percent').textContent = data.savingsPercent;
-  document.getElementById('token-counter-badge').textContent = `${data.beforeTokens.toLocaleString()} tokens`;
-  
-  document.getElementById('card-tokens-before').textContent = `${(data.beforeTokens/1000).toFixed(1)}K`;
-  document.getElementById('card-tokens-after').textContent = `${(data.afterTokens/1000).toFixed(1)}K`;
-  document.getElementById('card-tokens-badge').textContent = `-${data.savingsPercent}`;
-  document.getElementById('fin-margin').textContent = data.costSaved;
-}
-
-function runOptimization() {
-  const btn = document.getElementById('btn-optimize');
-  const spinner = document.getElementById('spinner-icon');
-  const btnText = document.getElementById('btn-optimize-text');
-  
-  btn.disabled = true;
-  spinner.textContent = 'sync';
-  spinner.classList.add('animate-spin');
-  btnText.textContent = 'Optimizing...';
-
-  const stages = [1, 2, 3, 4, 5];
-  let stageIdx = 0;
-  
-  const stageInterval = setInterval(() => {
-    if (stageIdx < stages.length) {
-      const sNum = stages[stageIdx];
-      const stageEl = document.getElementById(`stage-${sNum}`);
-      const circle = stageEl?.querySelector('div');
-      circle?.classList.add('stage-active', 'ring-4', 'ring-secondary/30');
-      setTimeout(() => circle?.classList.remove('stage-active', 'ring-4', 'ring-secondary/30'), 400);
-      stageIdx++;
-    } else {
-      clearInterval(stageInterval);
-      btn.disabled = false;
-      spinner.textContent = 'bolt';
-      spinner.classList.remove('animate-spin');
-      btnText.textContent = 'Optimize Context';
-      
-      showToast('⚡ Optimization completed in 184ms! Saved 72.2% tokens.');
-    }
-  }, 120);
-}
-
-function copyOptimizedContext() {
-  const text = document.getElementById('output-context-text').value;
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Copied optimized context to clipboard!');
-  }).catch(() => {
-    showToast('Copied optimized context!');
-  });
-}
-
-function showToast(message) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = 'toast-anim bg-inverse-surface text-inverse-on-surface text-xs py-2.5 px-4 rounded-xl shadow-lg flex items-center gap-2 pointer-events-auto border border-white/10 font-medium';
-  toast.innerHTML = `<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span><span>${message}</span>`;
-  container.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 3500);
-}
-
-function showHelpModal() {
-  showToast('ContextFlow Architecture: 6-Stage Cost-Aware LLM Optimization Proxy');
-}
-</script>
+  <!-- Application Frontend Controller JS -->
+  <script src="/static/app.js"></script>
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
 </body>
 </html>

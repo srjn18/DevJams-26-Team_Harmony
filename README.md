@@ -35,7 +35,7 @@ This creates three major problems:
 
 **🧠 Context Overload** — Providing too much irrelevant information can make it harder for an LLM to identify the information that actually matters.
 
----
+Token-Diet addresses this problem by intelligently analyzing, ranking, deduplicating, and compressing context before it reaches the LLM. The system dynamically decides how much optimization is required based on the size and characteristics of the input context.
 
 ## 🧠 Our Solution
 

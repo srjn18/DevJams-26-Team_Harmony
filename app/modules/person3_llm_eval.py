@@ -4,7 +4,6 @@ import re
 import time
 from typing import List, Literal, Optional, Tuple
 from app.schemas import ChunkInfo
-from app.tokenizer import count_tokens
 
 RouteType = Literal["SKIP", "LIGHT", "FULL"]
 
@@ -41,19 +40,60 @@ def person3_route_decision(
         return "FULL"
 
 
+def _clean_llm_response(answer: str) -> str:
+    """Strip leading prompt completion artifacts like '**Answer:**' or 'Answer:'."""
+    if not answer:
+        return ""
+    cleaned = answer.strip()
+    cleaned = re.sub(r"^\*\*Answer:\*\*\s*|^Answer:\s*|^\*\*Answer\*\*:\s*|^\*\*Answer\*\*\s*", "", cleaned, flags=re.IGNORECASE).strip()
+    return cleaned
+
+
 def person3_generate_answer(
     query: str,
     optimized_context: str,
     model: str = "gpt-4o"
 ) -> Tuple[str, float]:
     """
-    Perform LLM inference using OpenAI / Anthropic / Gemini if API key is present,
+    Perform LLM inference using Rakha/Groq/OpenAI if configured,
     or high-fidelity mock generator that references the optimized context.
     Returns (answer_text, latency_ms).
     """
     start_time = time.perf_counter()
-    api_key_openai = os.environ.get("OPENAI_API_KEY")
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
 
+    llm_provider = os.environ.get("LLM_PROVIDER", "").lower()
+
+    # Auto-detect active provider if not explicitly set
+    if not llm_provider:
+        if os.environ.get("RAKHA_API_KEY"):
+            llm_provider = "rakha"
+            os.environ["LLM_PROVIDER"] = "rakha"
+        elif os.environ.get("GROQ_API_KEY"):
+            llm_provider = "groq"
+            os.environ["LLM_PROVIDER"] = "groq"
+
+    if llm_provider in ("rakha", "groq"):
+        try:
+            from semantic_relevance_engine.llm_provider import get_answer_fn
+            answer_fn = get_answer_fn()
+
+            prompt = f"Context:\n{optimized_context}\n\nQuestion: {query}\n\nAnswer:"
+            raw_answer = answer_fn(prompt).strip()
+            answer = _clean_llm_response(raw_answer)
+
+            if answer and not answer.startswith("ERROR:"):
+                latency_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
+                return answer, latency_ms
+        except Exception as e:
+            print(f"[person3] Primary provider ({llm_provider}) call failed: {e}. Checking secondary options...")
+
+
+    api_key_openai = os.environ.get("OPENAI_API_KEY")
     if api_key_openai:
         try:
             import urllib.request
@@ -84,26 +124,49 @@ def person3_generate_answer(
         except Exception:
             pass  # Fall through to deterministic generator
 
-    # High-quality deterministic generation based on optimized context
-    time.sleep(0.08)  # simulate network/generation latency (~80ms)
+    # High-quality deterministic answer generation based on optimized context
+    time.sleep(0.08)  # simulate processing latency (~80ms)
     
-    # Extract key facts from context relevant to query
-    sentences = [s.strip() for s in re.split(r"[.\n]+", optimized_context) if len(s.strip()) > 10]
-    relevant_sentences = []
+    # Extract key sentences from context relevant to query
+    raw_sentences = [s.strip() for s in re.split(r"[.\n]+", optimized_context) if len(s.strip()) > 5]
     q_words = set(re.findall(r"\w+", query.lower()))
+    
+    # Exclude system headers or noise
+    clean_sentences = []
+    for s in raw_sentences:
+        if s.startswith("[") and s.endswith("]"):
+            continue
+        clean_sentences.append(s)
 
-    for s in sentences:
+    # Score sentences by query relevance
+    scored_sentences = []
+    for s in clean_sentences:
         s_words = set(re.findall(r"\w+", s.lower()))
-        if q_words & s_words:
-            relevant_sentences.append(s)
+        matches = len(q_words & s_words)
+        scored_sentences.append((matches, s))
 
-    if relevant_sentences:
-        answer_body = " ".join(relevant_sentences[:3])
-        answer = f"Based on the verified context: {answer_body}."
-    elif sentences:
-        answer = f"Based on the provided context: {sentences[0]}."
+    # Sort descending by match score
+    scored_sentences.sort(key=lambda x: x[0], reverse=True)
+    top_matches = [s for score, s in scored_sentences if score > 0]
+    
+    if not top_matches and clean_sentences:
+        top_matches = clean_sentences[:3]
+
+    if top_matches:
+        # Format as clean bullet points or cohesive response
+        formatted_points = []
+        for item in top_matches[:4]:
+            item_str = item.lstrip("- 1234567890.").strip()
+            if item_str and item_str not in formatted_points:
+                formatted_points.append(item_str)
+        
+        if len(formatted_points) == 1:
+            answer = formatted_points[0] + "."
+        else:
+            bullets = "\n".join([f"• {p}." for p in formatted_points if not p.endswith(".")])
+            answer = f"Key Findings for '{query}':\n\n{bullets}"
     else:
-        answer = f"I processed the context and addressed your query: '{query}'."
+        answer = f"Summary addressing query '{query}':\n\n{optimized_context.strip()}"
 
     latency_ms = round((time.perf_counter() - start_time) * 1000.0, 2)
     return answer, latency_ms

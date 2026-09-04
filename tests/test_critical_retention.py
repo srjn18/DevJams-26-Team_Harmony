@@ -1,5 +1,4 @@
 """Deterministic tests for §8 Hard-Rule Check: Critical Information & Constraint Survival."""
-import re
 from app.orchestrator import run_pipeline
 from app.modules.person1_relevance import tier0_chunk_and_tag
 from app.modules.person2_compression import tier2_compress, tier2_enforce_budget

@@ -1,7 +1,6 @@
 """Unit and integration tests for pipeline orchestration, routing, and graceful fallback."""
 import pytest
-from app.orchestrator import run_pipeline, assemble_coherent_context
-from app.schemas import ChunkInfo
+from app.orchestrator import run_pipeline
 
 LONG_CONTEXT = """System: You are an AI assistant specialized in cloud infrastructure analysis.
 

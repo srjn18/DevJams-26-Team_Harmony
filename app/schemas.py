@@ -1,5 +1,5 @@
 """Pydantic schemas and data contracts for the Context Optimization Middleware."""
-from typing import Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 
 

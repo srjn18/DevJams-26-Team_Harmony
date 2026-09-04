@@ -1,7 +1,7 @@
 """Master Pipeline Orchestrator for LLM Context Optimization Middleware."""
 import time
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from app.schemas import (
     ChunkInfo,
@@ -10,7 +10,7 @@ from app.schemas import (
     StageLatencyMs,
     StageTokens,
 )
-from app.tokenizer import count_tokens, truncate_to_tokens
+from app.tokenizer import count_tokens
 from app.modules.person1_relevance import (
     tier0_chunk_and_tag,
     tier1_filter_relevance,
@@ -246,7 +246,8 @@ def run_pipeline(
     try:
         compressed_chunks, comp_count = tier2_compress(
             dedup_chunks,
-            simulate_failure=simulate_tier2_failure
+            simulate_failure=simulate_tier2_failure,
+            query=query
         )
         lat_compression = round((time.perf_counter() - t2_comp_start) * 1000.0, 3)
         chunks_compressed = comp_count

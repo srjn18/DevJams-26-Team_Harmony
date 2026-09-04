@@ -1,4 +1,6 @@
 """Person 2 Module: Tier 2 (Critical Protection, Compression & Budget Enforcer)."""
+import math
+import os
 import re
 from typing import List, Tuple
 from app.schemas import ChunkInfo
@@ -32,19 +34,15 @@ def _compress_chunk_text(text: str, target_ratio: float = 0.65) -> str:
         return cleaned
 
     # Keep key sentences (first, last, and informative ones)
-    target_count = max(1, int(math_ceil(len(sentences) * target_ratio)))
+    target_count = max(1, int(math.ceil(len(sentences) * target_ratio)))
     selected_sentences = sentences[:target_count]
     return " ".join(selected_sentences).strip()
 
 
-def math_ceil(x: float) -> int:
-    import math
-    return math.ceil(x)
-
-
 def tier2_compress(
     chunks: List[ChunkInfo],
-    simulate_failure: bool = False
+    simulate_failure: bool = False,
+    query: str = ""
 ) -> Tuple[List[ChunkInfo], int]:
     """
     Tier 2 Compression:
@@ -58,6 +56,23 @@ def tier2_compress(
     compressed: List[ChunkInfo] = []
     compressed_count = 0
 
+    llm_provider = os.environ.get("LLM_PROVIDER")
+    has_real_provider = False
+    if llm_provider == "rakha" and os.environ.get("RAKHA_API_KEY"):
+        has_real_provider = True
+    elif llm_provider == "groq" and os.environ.get("GROQ_API_KEY"):
+        has_real_provider = True
+
+    compress_fn = None
+    if has_real_provider:
+        try:
+            from semantic_relevance_engine.llm_provider import get_compress_fn
+            compress_fn = get_compress_fn()
+        except Exception:
+            pass
+
+    META_REJECT_TERMS = ["extracted", "meta-notes", "summary of", "compressed version", "commentary", "here is the"]
+
     for chunk in chunks:
         # Pinned / Critical chunks are NEVER compressed
         if chunk.is_critical:
@@ -65,7 +80,37 @@ def tier2_compress(
             continue
 
         orig_text = chunk.text
-        new_text = _compress_chunk_text(orig_text, target_ratio=0.60)
+        new_text = None
+
+        # Skip LLM compression on short header lines or title banners
+        is_header_block = (
+            orig_text.startswith("===") or
+            orig_text.startswith("#") or
+            len(orig_text.split()) <= 10 or
+            "document" in orig_text.lower() and len(orig_text.split()) <= 12
+        )
+
+        if compress_fn and not is_header_block:
+            try:
+                # Format strict compression prompt prohibiting meta notes
+                prompt = (
+                    f"Task: Rewrite and compress the text below to be as short as possible while preserving "
+                    f"all specific facts, numbers, dates, SLA timeframes, dollar amounts, and technical details relevant to: '{query}'.\n"
+                    f"CRITICAL REQUIREMENT: Output ONLY the rewritten factual statements. "
+                    f"DO NOT output commentary, disclaimers, meta-notes, or phrases like 'extracted' or 'summary'.\n\n"
+                    f"Text:\n{orig_text}"
+                )
+                raw_compressed = compress_fn(prompt).strip()
+                
+                # Reject if LLM returned meta-commentary instead of real factual compressed text
+                if raw_compressed and not any(term in raw_compressed.lower() for term in META_REJECT_TERMS):
+                    new_text = raw_compressed
+            except Exception:
+                new_text = None
+
+        if not new_text or len(new_text) >= len(orig_text):
+            new_text = _compress_chunk_text(orig_text, target_ratio=0.60)
+
         new_tokens = count_tokens(new_text)
 
         if new_tokens < chunk.token_count:
