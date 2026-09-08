@@ -301,8 +301,7 @@ Instead of sending 10,000 tokens to the LLM, the application sends 3,500 tokens 
 - REST APIs
 
 **AI / LLM**
-- OpenAI API
-- Anthropic API
+- Reka API
 - LLM-based evaluation
 
 **Context Optimization**
