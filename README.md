@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # LLM Context Optimization Middleware
 
 Middleware that sits between an app and an LLM. It cuts irrelevant/redundant
